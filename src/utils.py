@@ -794,6 +794,13 @@ def create_inference_arg_parser():
     )
 
     parser.add_argument(
+        "--dataset_path",
+        type=str,
+        default="",
+        help="Optional local dataset file path (.jsonl). If provided, it overrides dataset_name mapping.",
+    )
+
+    parser.add_argument(
         "--doc_idx",
         type=int,
         default=-1,
@@ -1030,17 +1037,30 @@ def create_inference_arg_parser():
         help="Whether to use debug flag or not",
     )
 
+    parser.add_argument(
+        "--disable_wandb",
+        type=lambda x: x.lower() == "true",
+        default=False,
+        help="Disable wandb logging for local quick tests.",
+    )
+
     return parser
 
 
 def print_args(args, print_str="Parsed Arguments:"):
     print(print_str)
+
+    def _mask_if_secret(key, value):
+        if "key" in str(key).lower() and isinstance(value, str) and value:
+            return "***"
+        return value
+
     if type(args) == argparse.Namespace:
         for arg, value in vars(args).items():
-            print(f"{arg}: {value}")
+            print(f"{arg}: {_mask_if_secret(arg, value)}")
     elif type(args) == dict:
         for arg, value in args.items():
-            print(f"{arg}: {value}")
+            print(f"{arg}: {_mask_if_secret(arg, value)}")
 
 
 if __name__ == "__main__":

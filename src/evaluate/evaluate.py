@@ -1,4 +1,5 @@
 import json
+import os
 import pandas as pd
 import re
 import string
@@ -257,14 +258,16 @@ def get_accuracy_doc_qa(path, pred_col="pred", label_col="label"):
 
 """ Evaluation script for NarrativeQA dataset. (Extracted from the official evaluation script) """
 
-nltk_path = "/mnt/data/wangshu/hcarag/nltk"
+nltk_path = os.getenv("NLTK_DATA", os.path.expanduser("~/.nltk_data"))
+os.makedirs(nltk_path, exist_ok=True)
 # 添加 NLTK 数据路径
-nltk.data.path.append(nltk_path)
+if nltk_path not in nltk.data.path:
+    nltk.data.path.append(nltk_path)
 
 try:
     nltk.data.find("tokenizers/punkt")
 except LookupError:
-    print("Downloading punkt")
+    print(f"Downloading punkt to {nltk_path}")
     nltk.download("punkt", download_dir=nltk_path)
     nltk.download("wordnet", download_dir=nltk_path)
 

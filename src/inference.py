@@ -199,6 +199,11 @@ def hcarag_retrieval(
     }
 
     if query_paras["topk_chunk"] > 0:
+        if villa_index is None or chunk_df is None:
+            raise ValueError(
+                "topk_chunk > 0 but vanilla index/chunk corpus is not loaded. "
+                "Set --topk_chunk 0 or provide a valid dataset_name with vanilla index files."
+            )
         topk = query_paras["topk_chunk"]
         _, villa_pred = villa_index.search(query_embedding, topk)
         retrieval_context_idx = villa_pred.flatten()
@@ -478,7 +483,10 @@ def load_index(args):
 
     relation_df["embedding"] = relation_df["embedding_idx"].map(idx_embed_map)
 
-    villa_index, chunk_df = load_villa_index(args)
+    if args.topk_chunk > 0:
+        villa_index, chunk_df = load_villa_index(args)
+    else:
+        villa_index, chunk_df = None, None
 
     graph, _, _ = read_graph_nx(
         file_path=args.base_path,

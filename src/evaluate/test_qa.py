@@ -6,10 +6,6 @@ import wandb
 import os
 import time
 
-# 设置代理
-os.environ["http_proxy"] = "http://127.0.0.1:7892"
-os.environ["https_proxy"] = "http://127.0.0.1:7892"
-
 from src.inference import *
 from src.utils import create_inference_arg_parser
 from src.evaluate.evaluate import *
@@ -19,6 +15,13 @@ def load_datasets(datasets_path) -> pd.DataFrame:
     qa_df = pd.read_json(datasets_path, orient="records", lines=True)
     print("test datasets size:")
     print(qa_df.shape)
+    if "label" not in qa_df.columns:
+        if "answer" in qa_df.columns:
+            qa_df["label"] = qa_df["answer"]
+        elif "answers" in qa_df.columns:
+            qa_df["label"] = qa_df["answers"].apply(
+                lambda x: "|".join(x) if isinstance(x, list) else str(x)
+            )
     qa_df["id"] = range(len(qa_df))
     return qa_df
 
@@ -48,25 +51,30 @@ def process_question(
 
 def test_qa(query_paras, args):
 
+    wandb_mode = "disabled" if args.disable_wandb else os.getenv("WANDB_MODE", "online")
     wandb.init(
         project=f"{args.project}",
         name=f"{args.dataset_name}_hcarag_{query_paras['generate_strategy']}",
         config=args,
+        mode=wandb_mode,
     )
 
     # 1. load dataset and index
     index_dict = load_index(args)
 
-    ragqa_list = ["lifestyle", "recreation", "technology", "science", "writing"]
-
-    if args.dataset_name in ragqa_list:
-        dataset_path = (
-            f"/mnt/data/wangshu/hcarag/RAG-QA-Arena/{args.dataset_name}/Question.json"
-        )
+    if args.dataset_path:
+        dataset_path = args.dataset_path
     else:
-        dataset_path = dataset_name_path[args.dataset_name]
-        if "narrative" in args.dataset_name:
-            dataset_path = dataset_path.format(doc_idx=args.doc_idx)
+        ragqa_list = ["lifestyle", "recreation", "technology", "science", "writing"]
+
+        if args.dataset_name in ragqa_list:
+            dataset_path = (
+                f"/mnt/data/wangshu/hcarag/RAG-QA-Arena/{args.dataset_name}/Question.json"
+            )
+        else:
+            dataset_path = dataset_name_path[args.dataset_name]
+            if "narrative" in args.dataset_name:
+                dataset_path = dataset_path.format(doc_idx=args.doc_idx)
 
     qa_df = load_datasets(dataset_path)
 
@@ -96,20 +104,22 @@ def test_qa(query_paras, args):
 
     start_time = time.time()
 
-    # 创建进程池
-    with mp.Pool(processes=number_works) as pool:
-        # 准备每个问题的输入参数
-        process_func = partial(
-            process_question,
-            index_dict=index_dict,
-            query_paras=query_paras,
-            args=args,
-        )
+    process_func = partial(
+        process_question,
+        index_dict=index_dict,
+        query_paras=query_paras,
+        args=args,
+    )
 
-        # 使用 enumerate 处理每个问题，确保索引正确
-        results = pool.starmap(
-            process_func, [(idx, row) for idx, row in qa_df.iterrows()]
-        )
+    if number_works <= 1:
+        results = [process_func(idx, row) for idx, row in qa_df.iterrows()]
+    else:
+        # 创建进程池
+        with mp.Pool(processes=number_works) as pool:
+            # 使用 enumerate 处理每个问题，确保索引正确
+            results = pool.starmap(
+                process_func, [(idx, row) for idx, row in qa_df.iterrows()]
+            )
 
     all_token = 0
     # 将结果合并回 qa_df

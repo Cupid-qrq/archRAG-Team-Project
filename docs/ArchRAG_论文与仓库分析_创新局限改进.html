@@ -1,0 +1,561 @@
+<!DOCTYPE html><html><head>
+      <title>ArchRAG_论文与仓库分析_创新局限改进</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:////home/qrq/.vscode-server/extensions/shd101wyy.markdown-preview-enhanced-0.8.26/crossnote/dependencies/katex/katex.min.css">
+      
+      
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-details{margin:0;padding:0;border:none}.markdown-preview .md-toc summary.md-toc-link-wrapper{cursor:pointer;list-style-position:outside}.markdown-preview .md-toc summary.md-toc-link-wrapper::marker{font-size:.85em}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='0']{margin-left:12px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='1']{margin-left:28px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='2']{margin-left:44px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='3']{margin-left:60px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='4']{margin-left:76px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='5']{margin-left:80px}.markdown-preview a.tag,.markdown-preview a.tag:active,.markdown-preview a.tag:link,.markdown-preview a.tag:visited,.markdown-preview span.tag:not(.token){display:inline-block;background-color:var(--vscode-badge-background,rgba(127,127,127,.18));color:var(--vscode-badge-foreground,currentColor);border-radius:2em;font-size:.85em;font-weight:500;padding:.05em .55em;line-height:1.5;white-space:nowrap;text-decoration:none;text-shadow:none;box-shadow:none;transition:background-color .12s ease,opacity .12s ease}.markdown-preview a.tag{cursor:pointer}.markdown-preview a.tag:focus,.markdown-preview a.tag:hover{background-color:var(--vscode-badge-background,rgba(127,127,127,.32));color:var(--vscode-badge-foreground,currentColor);opacity:.85;text-decoration:none;outline:0}.markdown-preview .wikilink-embed-content{border-left:3px solid var(--vscode-textBlockQuote-border,rgba(128,128,128,.3));background:var(--vscode-textBlockQuote-background,rgba(128,128,128,.05));margin:.5em 0;padding:.5em .75em;border-radius:0 3px 3px 0}.markdown-preview .wikilink-embed-content.wikilink-embed-error{border-left-color:var(--vscode-errorForeground,#cf222e);color:var(--vscode-errorForeground,#cf222e);font-style:italic;opacity:.8}.markdown-preview .wikilink-embed-content h1:first-child,.markdown-preview .wikilink-embed-content h2:first-child,.markdown-preview .wikilink-embed-content h3:first-child,.markdown-preview .wikilink-embed-content h4:first-child,.markdown-preview .wikilink-embed-content h5:first-child,.markdown-preview .wikilink-embed-content h6:first-child{margin-top:.25em}.markdown-preview .wikilink-embed-content .wikilink-embed-content{margin:.25em 0;padding:.25em .5em}.markdown-preview .block-id{display:none}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-details{margin:0;padding:0;border:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='0']{padding-left:0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='1']{padding-left:16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='2']{padding-left:32px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='3']{padding-left:48px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='4']{padding-left:64px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='5']{padding-left:80px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script>
+    </head>
+    <body for="html-export">
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="archrag-论文与仓库分析创新点-局限和可改进方向">ArchRAG 论文与仓库分析：创新点、局限和可改进方向 </h1>
+<p>本文基于仓库根目录的 <code>2502.09891v4.pdf</code>、提取文本 <code>docs/archrag_paper_text.txt</code>，以及当前代码实现进行分析。论文版本为 arXiv <code>2502.09891v4</code>，PDF 共 20 页。</p>
+<h2 id="1-论文想解决的问题">1. 论文想解决的问题 </h2>
+<p>论文认为 GraphRAG 类方法已经证明图结构对 RAG 有价值，但仍有三个关键问题：</p>
+<ol>
+<li>
+<p><strong>社区质量不稳定</strong><br>
+GraphRAG 使用 Leiden 等结构聚类方法，只看图连接，不看实体/关系文本属性。结果是社区可能混入不同主题，社区摘要质量下降。</p>
+</li>
+<li>
+<p><strong>粒度兼容性不足</strong><br>
+GraphRAG 的 Global Search 偏高层社区摘要，Local Search 偏实体和文本块，两者分别适合抽象问题和具体问题，但真实问题往往同时需要细粒度事实和高层概括。</p>
+</li>
+<li>
+<p><strong>在线 token 成本高</strong><br>
+GraphRAG Global Search 可能遍历大量社区，然后让 LLM 判断哪些社区相关。论文给出的例子是 Multihop-RAG 上 100 个问题会产生非常高的 token 成本。</p>
+</li>
+</ol>
+<p>ArchRAG 的目标就是：</p>
+<blockquote>
+<p>用属性增强社区提高社区质量，用层级结构兼容不同问题粒度，用 C-HNSW 降低在线检索和生成成本。</p>
+</blockquote>
+<h2 id="2-论文的主要创新点">2. 论文的主要创新点 </h2>
+<h3 id="21-把属性社区引入-graph-rag">2.1 把“属性社区”引入 Graph RAG </h3>
+<p>论文中的 AC 指 Attributed Community，也就是属性社区。</p>
+<p>普通社区检测只看图结构，比如两个节点是否连接、连接多不多。ArchRAG 额外利用实体文本属性：</p>
+<ul>
+<li>实体名称</li>
+<li>实体描述</li>
+<li>社区摘要</li>
+<li>embedding 相似度</li>
+</ul>
+<p>这使社区同时满足两个条件：</p>
+<ul>
+<li>图上连接密集。</li>
+<li>语义主题接近。</li>
+</ul>
+<p>这个想法很关键，因为 RAG 的上下文最终是给 LLM 读的，社区摘要是否语义一致比传统图指标更直接影响答案质量。</p>
+<h3 id="22-llm-based-hierarchical-clustering">2.2 LLM-based hierarchical clustering </h3>
+<p>论文不是只做一层社区，而是迭代构建层级：</p>
+<ol>
+<li>从 GraphRAG 生成的 KG 开始。</li>
+<li>用实体 embedding 增强图。</li>
+<li>对增强图做聚类。</li>
+<li>用 LLM 给每个社区写摘要。</li>
+<li>把社区当成新节点，重新构建高层图。</li>
+<li>继续聚类，直到达到最大层数或社区数量太少。</li>
+</ol>
+<p>这个流程的价值在于：</p>
+<ul>
+<li>低层社区保留具体关系。</li>
+<li>高层社区形成压缩后的全局概念。</li>
+<li>每一层都有可检索、可读的 LLM 摘要。</li>
+</ul>
+<p>这比直接把所有 chunk 做树形聚类更图结构化，也比 GraphRAG 的单套社区更灵活。</p>
+<h3 id="23-c-hnsw--hchnsw-层级向量索引">2.3 C-HNSW / HCHNSW 层级向量索引 </h3>
+<p>论文提出 C-HNSW，代码里叫 HCHNSW。</p>
+<p>它和普通 HNSW 的区别是：</p>
+<ul>
+<li>普通 HNSW 的层级主要服务于检索效率，层级本身没有明确语义。</li>
+<li>C-HNSW 的层级来自实体/社区的真实语义层级。</li>
+<li>每个节点只属于自己的语义层，例如实体层、低层社区、高层社区。</li>
+</ul>
+<p>这样可以在一个统一索引里检索：</p>
+<ul>
+<li>实体</li>
+<li>低层社区</li>
+<li>高层社区</li>
+</ul>
+<p>避免每一层单独建一个 vector index。</p>
+<h3 id="24-hierarchical-search-复用上层搜索结果">2.4 Hierarchical search 复用上层搜索结果 </h3>
+<p>论文提出的 hierarchical search 会从高层开始向下搜索，并复用上一层找到的近邻作为下一层起点，避免每层都从头搜索。</p>
+<p>直觉上，这像先在地图上定位城市，再定位街区，最后定位门牌号。</p>
+<p>论文附录报告了在合成层级数据上相对 Base-HNSW 的检索加速。</p>
+<h3 id="25-adaptive-filtering-based-generation">2.5 Adaptive filtering-based generation </h3>
+<p>ArchRAG 没有简单把所有检索结果直接塞给 LLM，而是做 map-reduce：</p>
+<ol>
+<li>Filter prompt：让 LLM 从各个检索片段中提取相关要点并打分。</li>
+<li>Merge prompt：按分数合并要点，生成最终答案。</li>
+</ol>
+<p>论文中有一句很有启发的观察：</p>
+<blockquote>
+<p>LLM may not be a good retriever, but is a good analyzer.</p>
+</blockquote>
+<p>也就是说，LLM 不适合从几千个社区里做检索器，但适合对少量候选上下文做分析和筛选。</p>
+<h2 id="3-实验贡献和证据">3. 实验贡献和证据 </h2>
+<p>论文在三类 specific QA 数据集上比较：</p>
+<ul>
+<li>Multihop-RAG</li>
+<li>HotpotQA</li>
+<li>NarrativeQA</li>
+</ul>
+<p>也比较了 abstract QA。</p>
+<p>论文报告的主要结果：</p>
+<ul>
+<li>在 specific QA 上，ArchRAG 相比 Vanilla RAG、GraphRAG、LightRAG、HippoRAG、RAPTOR 有更高准确率。</li>
+<li>在 abstract QA 上，ArchRAG 整体优于或接近 GraphRAG Global Search。</li>
+<li>在线 token 成本显著低于 GraphRAG Global Search。</li>
+<li>消融实验显示去掉 community、hierarchy、attributes 或 adaptive filtering 都会降性能。</li>
+</ul>
+<p>值得注意的是，Table 3 中 <code>Direct Prompt</code> 降幅很大，说明 map-reduce/filtering 不是装饰，而是结果质量的重要来源。</p>
+<h2 id="4-仓库实现和论文方法的对应关系">4. 仓库实现和论文方法的对应关系 </h2>
+<table>
+<thead>
+<tr>
+<th>论文组件</th>
+<th>仓库实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KG construction</td>
+<td><code>src/graphrag/</code></td>
+</tr>
+<tr>
+<td>attributed graph augmentation</td>
+<td><code>src/utils.py::compute_distance()</code></td>
+</tr>
+<tr>
+<td>community clustering</td>
+<td><code>src/attr_cluster.py::attr_cluster()</code></td>
+</tr>
+<tr>
+<td>community report</td>
+<td><code>src/community_report.py</code></td>
+</tr>
+<tr>
+<td>level summary</td>
+<td><code>src/client_reasoning.py::level_summary()</code></td>
+</tr>
+<tr>
+<td>C-HNSW/HCHNSW index</td>
+<td><code>src/hchnsw_index.py</code> + <code>HCHNSW/faiss/</code></td>
+</tr>
+<tr>
+<td>online retrieval</td>
+<td><code>src/inference.py::hcarag_retrieval()</code></td>
+</tr>
+<tr>
+<td>adaptive filtering generation</td>
+<td><code>src/client_reasoning.py::map_inference()</code> 和 <code>reduce_inference()</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-论文层面的局限">5. 论文层面的局限 </h2>
+<h3 id="51-离线成本没有被同等强调">5.1 离线成本没有被同等强调 </h3>
+<p>论文重点强调在线查询省 token，但 ArchRAG 的离线过程本身不轻：</p>
+<ul>
+<li>GraphRAG KG 构建需要 LLM。</li>
+<li>社区报告需要 LLM。</li>
+<li>层级摘要需要 LLM。</li>
+<li>实体、社区、关系都需要 embedding。</li>
+</ul>
+<p>对于经常更新的知识库，离线重建成本会成为实际瓶颈。论文提到未来会探索快速并行图 RAG，但增量更新没有充分展开。</p>
+<h3 id="52-kg-抽取错误会被层级放大">5.2 KG 抽取错误会被层级放大 </h3>
+<p>ArchRAG 建立在 GraphRAG 抽取的实体和关系之上。如果底层 KG 抽错：</p>
+<ul>
+<li>错实体会进入社区。</li>
+<li>错关系会影响社区边。</li>
+<li>错社区会生成误导性摘要。</li>
+<li>摘要 embedding 又会进入索引。</li>
+</ul>
+<p>也就是说，错误可能沿着“实体 -&gt; 社区 -&gt; 高层社区 -&gt; 检索结果”逐层传播。</p>
+<h3 id="53-社区摘要存在-llm-幻觉风险">5.3 社区摘要存在 LLM 幻觉风险 </h3>
+<p>社区报告是 LLM 生成的。即使 prompt 要求 grounded，LLM 仍可能：</p>
+<ul>
+<li>夸大社区含义。</li>
+<li>引入文档中不存在的泛化描述。</li>
+<li>在多个相近实体之间混淆关系。</li>
+</ul>
+<p>论文实验主要评估最终 QA，没有系统评估社区摘要本身的事实一致性。</p>
+<h3 id="54-超参数敏感性仍然存在">5.4 超参数敏感性仍然存在 </h3>
+<p>ArchRAG 依赖一组关键参数：</p>
+<ul>
+<li>图增强阈值</li>
+<li>KNN 补边数量</li>
+<li>聚类算法</li>
+<li>最大社区大小</li>
+<li>最大层数</li>
+<li>每层 top-k</li>
+</ul>
+<p>论文报告了 k 值变化影响不大，但图增强和聚类参数对社区质量的影响可能很大。不同领域、不同 KG 密度下，默认参数未必稳定。</p>
+<h3 id="55-抽象-qa-的评估依赖-llm-judge">5.5 抽象 QA 的评估依赖 LLM judge </h3>
+<p>抽象 QA 很难有标准答案，论文采用 GPT-4o head-to-head 评价。这是合理选择，但也带来：</p>
+<ul>
+<li>judge 偏好长答案或格式化答案。</li>
+<li>judge 与被评模型可能同源或偏好某种写作风格。</li>
+<li>结果复现依赖 judge prompt 和模型版本。</li>
+</ul>
+<h3 id="56-c-hnsw-的收益主要在大规模层级索引中体现">5.6 C-HNSW 的收益主要在大规模层级索引中体现 </h3>
+<p>C-HNSW 的工程收益在大规模多层向量上更明显。对于中小知识库，复杂的自定义 Faiss 依赖可能带来部署成本。</p>
+<p>这不是方法错误，而是工程权衡：小规模应用可能用每层一个普通 Faiss/HNSW index 就够了。</p>
+<h2 id="6-仓库实现层面的不足">6. 仓库实现层面的不足 </h2>
+<h3 id="61-默认脚本不可直接复现">6.1 默认脚本不可直接复现 </h3>
+<p><code>dataset/index.sh</code> 和 <code>dataset/query.sh</code> 里有 TODO 和空路径，例如：</p>
+<ul>
+<li><code>api_key=""</code></li>
+<li><code>api_base=""</code></li>
+<li><code>output_dir=""</code></li>
+</ul>
+<p>而且大量默认路径指向作者机器：</p>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>/mnt/data/wangshu/...
+/home/wangshu/...
+</code></pre><p>这会影响新用户复现。</p>
+<h3 id="62-api-key-放在-yaml-中有安全风险">6.2 API key 放在 YAML 中有安全风险 </h3>
+<p>当前 <code>corpus/settings.yaml</code> 里有明文 API key。建议改为：</p>
+<ul>
+<li><code>.env</code></li>
+<li>环境变量</li>
+<li>或本地未跟踪配置文件</li>
+</ul>
+<h3 id="63-read_graph_nx-里权重判断疑似有-bug">6.3 <code>read_graph_nx()</code> 里权重判断疑似有 bug </h3>
+<p><code>src/utils.py</code> 中有逻辑：</p>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code>add_weight <span class="token operator">=</span> <span class="token string">"weight"</span> <span class="token keyword keyword-in">in</span> relationships<span class="token punctuation">.</span>columns
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword keyword-if">if</span> add_weight <span class="token keyword keyword-in">in</span> row<span class="token punctuation">:</span>
+    graph<span class="token punctuation">.</span>add_edge<span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">,</span> weight<span class="token operator">=</span>row<span class="token punctuation">[</span><span class="token string">"weight"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-else">else</span><span class="token punctuation">:</span>
+    graph<span class="token punctuation">.</span>add_edge<span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span>
+</code></pre><p>这里 <code>add_weight</code> 是布尔值，<code>add_weight in row</code> 检查的是 Series 的索引成员，通常不会按预期判断 <code>weight</code> 列是否存在。更合理的是：</p>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token keyword keyword-if">if</span> add_weight<span class="token punctuation">:</span>
+    graph<span class="token punctuation">.</span>add_edge<span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">,</span> weight<span class="token operator">=</span>row<span class="token punctuation">[</span><span class="token string">"weight"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-else">else</span><span class="token punctuation">:</span>
+    graph<span class="token punctuation">.</span>add_edge<span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span>
+</code></pre><p>这会影响原始关系权重是否被保留。</p>
+<h3 id="64-默认在线检索层级和论文意图不完全一致">6.4 默认在线检索层级和论文意图不完全一致 </h3>
+<p><code>src/inference.py</code> 中：</p>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token keyword keyword-if">if</span> query_paras<span class="token punctuation">[</span><span class="token string">"only_entity"</span><span class="token punctuation">]</span> <span class="token keyword keyword-is">is</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+    query_max_levl <span class="token operator">=</span> <span class="token number">1</span>
+<span class="token keyword keyword-elif">elif</span> query_paras<span class="token punctuation">[</span><span class="token string">"wo_hierarchical"</span><span class="token punctuation">]</span> <span class="token keyword keyword-is">is</span> <span class="token boolean">False</span><span class="token punctuation">:</span>
+    query_max_levl <span class="token operator">=</span> <span class="token number">2</span>
+<span class="token keyword keyword-else">else</span><span class="token punctuation">:</span>
+    query_max_levl <span class="token operator">=</span> hc_level <span class="token operator">+</span> <span class="token number">1</span>
+</code></pre><p>如果 <code>wo_hierarchical=False</code>，按字面应该“使用层级”，但代码只查 <code>range(2)</code>，也就是实体层和第 1 层社区，可能不会使用全部层级。这个命名和行为容易误导，也可能使高层社区没被充分利用。</p>
+<h3 id="65-查询生成混入模型先验知识">6.5 查询生成混入模型先验知识 </h3>
+<p><code>hcarag_inference_mr()</code> 一开始会让 LLM 直接回答：</p>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code>llm_query_content <span class="token operator">=</span> query <span class="token operator">+</span> <span class="token string">"\nLet’s think step by step. \n Answer: "</span>
+</code></pre><p>然后把这个结果加入后续 map-reduce。这样可能提升答案质量，但也可能引入非检索知识，削弱“答案来自知识库”的可控性。</p>
+<h3 id="66-输出解析较脆弱">6.6 输出解析较脆弱 </h3>
+<p><code>qa_response_extract()</code> 用正则匹配：</p>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>Direct Answer ... Brief Analysis
+</code></pre><p>如果模型输出格式稍微变化，比如 Markdown 标题、中文冒号、缺少 Brief Analysis，就可能解析失败。</p>
+<h3 id="67-缺少增量更新能力">6.7 缺少增量更新能力 </h3>
+<p>当前流程基本是全量重建：</p>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>文档 -&gt; GraphRAG -&gt; 社区 -&gt; HCHNSW
+</code></pre><p>实际业务知识库经常新增、删除、修改文档。如果每次都全量跑 LLM 抽图和社区摘要，成本会很高。</p>
+<h3 id="68-自定义-faiss-部署成本较高">6.8 自定义 Faiss 部署成本较高 </h3>
+<p>项目依赖修改过的 Faiss，用户必须编译 Python binding。这会增加部署门槛，尤其是在：</p>
+<ul>
+<li>Windows</li>
+<li>无 root 权限服务器</li>
+<li>Docker 镜像环境</li>
+<li>CI/CD</li>
+<li>多平台发布</li>
+</ul>
+<h2 id="7-可以做的小而有价值的改进方向">7. 可以做的小而有价值的改进方向 </h2>
+<p>下面这些方向不需要推翻项目结构，适合作为论文扩展、课程项目或后续实验。</p>
+<h3 id="71-修复并增强层级检索策略">7.1 修复并增强层级检索策略 </h3>
+<p>当前最值得先做的是把在线检索层级逻辑理顺。</p>
+<p>建议改造：</p>
+<ol>
+<li>增加参数：</li>
+</ol>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>--query_max_level
+--query_min_level
+--adaptive_level true/false
+</code></pre><ol start="2">
+<li>默认搜索所有层：</li>
+</ol>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code>query_max_level <span class="token operator">=</span> hc_level <span class="token operator">+</span> <span class="token number">1</span>
+</code></pre><ol start="3">
+<li>如果问题是具体事实，给实体和低层社区更高权重。</li>
+<li>如果问题是抽象总结，给高层社区更高权重。</li>
+</ol>
+<p>预期收益：</p>
+<ul>
+<li>更符合论文“多粒度检索”的设计。</li>
+<li>高层社区不会被浪费。</li>
+<li>可以做一组清晰消融：只查实体、查实体+低层、查全部层、LLM 自适应查层。</li>
+</ul>
+<h3 id="72-做关系感知的-reranking">7.2 做关系感知的 reranking </h3>
+<p>当前检索主要靠向量相似度，然后再筛关系。可以把多种信号融合成最终分数：</p>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>score = α * vector_similarity
+      + β * relation_similarity
+      + γ * graph_centrality
+      + δ * community_rating
+      + ε * source_text_overlap
+</code></pre><p>可以先从简单版本开始：</p>
+<ul>
+<li>HCHNSW 返回候选实体/社区。</li>
+<li>对候选实体的邻接关系做 query-relation 相似度。</li>
+<li>用关系得分重新排序实体。</li>
+</ul>
+<p>预期收益：</p>
+<ul>
+<li>多跳事实题可能更稳。</li>
+<li>避免只因实体描述相似而选中关系弱的节点。</li>
+</ul>
+<h3 id="73-改造社区构建算法">7.3 改造社区构建算法 </h3>
+<p>当前主要是 KNN 图增强 + weighted Leiden。可以尝试以下小改动：</p>
+<h4 id="方案-amutual-knn-补边">方案 A：Mutual KNN 补边 </h4>
+<p>只在 A 是 B 的近邻且 B 也是 A 的近邻时补边。</p>
+<p>好处：</p>
+<ul>
+<li>减少单向相似导致的噪声边。</li>
+<li>社区更紧凑。</li>
+</ul>
+<h4 id="方案-b语义边权--原始关系权重融合">方案 B：语义边权 + 原始关系权重融合 </h4>
+<p>现在增强边主要来自 embedding 相似度。可以融合原始 KG 关系：</p>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>edge_weight = λ * semantic_similarity + (1 - λ) * normalized_graph_weight
+</code></pre><p>然后调 <code>λ</code> 做实验。</p>
+<h4 id="方案-c社区大小自适应">方案 C：社区大小自适应 </h4>
+<p>不同主题密度下固定 <code>max_cluster_size</code> 不一定合适。可以根据：</p>
+<ul>
+<li>节点度数</li>
+<li>embedding 方差</li>
+<li>社区内部相似度</li>
+<li>LLM summary token 长度</li>
+</ul>
+<p>动态决定是否继续拆分。</p>
+<h4 id="方案-d允许重叠社区">方案 D：允许重叠社区 </h4>
+<p>真实实体可能属于多个主题。例如 <code>Bayview Hospital</code> 同时属于：</p>
+<ul>
+<li>医疗服务</li>
+<li>微电网能源</li>
+<li>应急交通</li>
+</ul>
+<p>硬划分会丢失这种多角色信息。可以探索：</p>
+<ul>
+<li>Speaker-listener label propagation</li>
+<li>link community</li>
+<li>soft clustering</li>
+<li>top-2 community assignment</li>
+</ul>
+<p>预期收益：</p>
+<ul>
+<li>多主题实体更容易被不同问题检索到。</li>
+</ul>
+<h3 id="74-给社区摘要加事实校验">7.4 给社区摘要加事实校验 </h3>
+<p>可以在生成社区报告后增加一个 verification 阶段：</p>
+<ol>
+<li>把社区 summary 拆成 atomic claims。</li>
+<li>用原始 entity/relationship/text unit 判断每条 claim 是否支持。</li>
+<li>删除 unsupported claims 或要求 LLM 重写。</li>
+</ol>
+<p>输出字段可增加：</p>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>faithfulness_score
+unsupported_claims
+source_text_unit_ids
+</code></pre><p>预期收益：</p>
+<ul>
+<li>降低社区摘要幻觉。</li>
+<li>最终答案更容易给证据。</li>
+</ul>
+<h3 id="75-增加答案引用">7.5 增加答案引用 </h3>
+<p>当前最终答案主要输出 Direct Answer 和 Brief Analysis。可以让最终答案带引用：</p>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>Direct Answer: ...
+Evidence:
+- entity: ...
+- relationship: ...
+- text_unit: ...
+</code></pre><p>代码上可以把 <code>topk_entity</code>、<code>topk_related_r</code> 和 <code>text_unit_ids</code> 保留到最终 prompt 中。</p>
+<p>预期收益：</p>
+<ul>
+<li>更可解释。</li>
+<li>更适合企业知识库。</li>
+</ul>
+<h3 id="76-做增量更新">7.6 做增量更新 </h3>
+<p>一个实用创新点是增量 ArchRAG：</p>
+<p>当新增文档时：</p>
+<ol>
+<li>只对新增文档抽实体/关系。</li>
+<li>和旧 KG 做 entity resolution。</li>
+<li>找受影响的局部社区。</li>
+<li>只重算这些社区及其祖先社区摘要。</li>
+<li>对 HCHNSW 做局部 add/update。</li>
+</ol>
+<p>预期收益：</p>
+<ul>
+<li>大幅降低持续维护成本。</li>
+<li>很适合作为工程创新点。</li>
+</ul>
+<h3 id="77-自适应生成策略">7.7 自适应生成策略 </h3>
+<p>不是所有问题都需要昂贵的 map-reduce。可以先分类：</p>
+<table>
+<thead>
+<tr>
+<th>问题类型</th>
+<th>策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单实体事实题</td>
+<td>entity + relation direct</td>
+</tr>
+<tr>
+<td>多跳事实题</td>
+<td>entity + relation map-reduce</td>
+</tr>
+<tr>
+<td>抽象总结题</td>
+<td>community map-reduce</td>
+</tr>
+<tr>
+<td>不确定题</td>
+<td>full hierarchical map-reduce</td>
+</tr>
+</tbody>
+</table>
+<p>可以用轻量 LLM 或规则判断。</p>
+<p>预期收益：</p>
+<ul>
+<li>降低在线 token 成本。</li>
+<li>提升简单问题响应速度。</li>
+</ul>
+<h3 id="78-用普通-faiss-做-fallback">7.8 用普通 Faiss 做 fallback </h3>
+<p>为了降低部署门槛，可以加一个 fallback：</p>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>if IndexHCHNSWFlat unavailable:
+    build one IndexHNSWFlat per level
+</code></pre><p>这样用户无需编译自定义 Faiss 也能跑通，只是速度略慢。</p>
+<p>预期收益：</p>
+<ul>
+<li>更容易复现。</li>
+<li>更适合开源项目传播。</li>
+</ul>
+<h3 id="79-加入社区质量监控">7.9 加入社区质量监控 </h3>
+<p>论文使用 CHI 和 Cosine Similarity 评估社区质量。仓库可以在每次建索引时自动输出：</p>
+<pre data-role="codeBlock" data-info="text" class="language-text text"><code>community_quality_report.csv
+</code></pre><p>包含：</p>
+<ul>
+<li>每层社区数量</li>
+<li>每个社区大小</li>
+<li>社区内部 embedding 平均相似度</li>
+<li>社区边密度</li>
+<li>summary token 数</li>
+<li>empty/failed summary 数量</li>
+</ul>
+<p>预期收益：</p>
+<ul>
+<li>方便调参。</li>
+<li>方便发现坏社区。</li>
+</ul>
+<h3 id="710-改造配置和脚本">7.10 改造配置和脚本 </h3>
+<p>工程层面建议：</p>
+<ol>
+<li>删除硬编码 <code>/mnt/data/...</code> 默认路径。</li>
+<li>所有脚本统一支持 <code>--config</code>。</li>
+<li>API key 只从环境变量或 <code>.env</code> 读取。</li>
+<li>增加 <code>make demo</code> 或 <code>python scripts/run_expanded_archrag_real.py</code> 一键入口。</li>
+<li>增加小数据测试，确认 <code>IndexHCHNSWFlat</code>、GraphRAG artifacts、QA 都可跑。</li>
+</ol>
+<h2 id="8-我最推荐优先做的三个改进">8. 我最推荐优先做的三个改进 </h2>
+<p>如果你希望做“小而漂亮”的创新，不想开太大工程，我建议优先选这三个：</p>
+<h3 id="方向-1自适应层级检索">方向 1：自适应层级检索 </h3>
+<p>问题：</p>
+<p>当前代码可能没有充分利用所有层级。</p>
+<p>改法：</p>
+<ul>
+<li>修正 <code>wo_hierarchical</code> 逻辑。</li>
+<li>让 LLM 或轻量分类器判断每层权重。</li>
+<li>根据权重分配 <code>k_per_level</code>。</li>
+</ul>
+<p>实验：</p>
+<ul>
+<li>entity-only</li>
+<li>low-level only</li>
+<li>all-level fixed k</li>
+<li>adaptive level k</li>
+</ul>
+<p>这是最贴近论文核心、也最容易做出对比结果的方向。</p>
+<h3 id="方向-2关系感知-reranking">方向 2：关系感知 reranking </h3>
+<p>问题：</p>
+<p>向量近邻未必等于答案相关。</p>
+<p>改法：</p>
+<ul>
+<li>初始 HCHNSW 召回 2k 候选。</li>
+<li>根据候选实体相关关系和 query 的相似度 rerank。</li>
+<li>最终选择实体、关系、社区。</li>
+</ul>
+<p>实验：</p>
+<ul>
+<li>不 rerank</li>
+<li>relation rerank</li>
+<li>relation + graph centrality rerank</li>
+</ul>
+<p>这个方向对多跳 QA 很有价值。</p>
+<h3 id="方向-3社区摘要事实校验">方向 3：社区摘要事实校验 </h3>
+<p>问题：</p>
+<p>社区摘要是 LLM 生成的，有幻觉风险。</p>
+<p>改法：</p>
+<ul>
+<li>社区 summary 后接一个 verifier。</li>
+<li>标记 unsupported claims。</li>
+<li>对低分社区重写或降权。</li>
+</ul>
+<p>实验：</p>
+<ul>
+<li>社区事实一致性人工抽查</li>
+<li>QA accuracy</li>
+<li>unsupported community 被检索时的错误率</li>
+</ul>
+<p>这个方向适合强调“可信 RAG”。</p>
+<h2 id="9-总体评价">9. 总体评价 </h2>
+<p>ArchRAG 的核心贡献是把“社区”从 GraphRAG 里的静态摘要单元，升级成了带属性、带层级、可索引的检索对象。</p>
+<p>它的强点是：</p>
+<ul>
+<li>方法动机清晰：针对 GraphRAG 的社区质量、粒度兼容、在线成本三个痛点。</li>
+<li>结构优雅：实体、社区、高层社区统一进层级索引。</li>
+<li>工程上有实物：自定义 Faiss HCHNSW 能跑。</li>
+<li>消融比较完整：attributes、hierarchy、community、adaptive filtering 都有实验支撑。</li>
+</ul>
+<p>它的弱点是：</p>
+<ul>
+<li>离线成本和增量维护问题仍然重。</li>
+<li>强依赖 LLM 抽图和摘要，错误会逐层传播。</li>
+<li>评估中部分指标依赖 LLM judge。</li>
+<li>开源仓库复现门槛较高，脚本和路径还偏研究原型。</li>
+<li>当前代码实现有一些和论文设计不完全一致或容易误用的地方。</li>
+</ul>
+<p>如果把它作为研究项目继续推进，最有价值的路线不是再堆更大的模型，而是让“层级检索”和“社区质量控制”更可解释、更稳定、更低成本。</p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>
