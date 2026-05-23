@@ -9,7 +9,7 @@ min_clusters=10
 max_cluster_size=15
 entity_second_embedding=True
 api_key="sk-GPKz0LPEDWO6sJMT0" #TODO
-api_base="http://localhost:8327/v1"
+api_base="http://localhost:8327/v1" #TODO
 engine="gpt-5.5" # llm engine
 
 # If you have embedding model settings, uncomment and set them here
@@ -17,7 +17,7 @@ engine="gpt-5.5" # llm engine
 # --embedding_model $embedding_model --embedding_api_key $embedding_api_key --embedding_api_base $embedding_api_base \    
 embedding_model="BAAI/bge-m3" # TODO
 embedding_api_key="dummy"
-embedding_api_base="http://localhost:8080/v1"
+embedding_api_base="http://localhost:8080/v1" # TODO
 
 augment_graph=True
 cluster_method="weighted_leiden"
