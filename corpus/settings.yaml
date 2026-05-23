@@ -2,13 +2,13 @@
 encoding_model: cl100k_base
 skip_workflows: [create_final_community_reports,create_summarized_entities,join_text_units_to_entity_ids,join_text_units_to_covariate_ids,join_text_units_to_relationship_ids]
 llm:
-  api_key: 写自己的api然后对应修改下面的
+  api_key: #TODO
   type: openai_chat # or azure_openai_chat
-  model: gpt-4o 
+  model: gpt-5.5
   model_supports_json: true # recommended if this is available for your model.
   max_tokens: 2000
   # request_timeout: 180.0
-  api_base: https://yunwu.ai/v1
+  api_base: #TODO
   # api_version: 2024-02-15-preview
   # organization: <organization_id>
   # deployment_name: <azure_model_deployment_name>
@@ -32,10 +32,9 @@ embeddings:
   ## parallelization: override the global parallelization settings for embeddings
   async_mode: threaded # or asyncio
   llm:
-    api_key: sk-Pdn2uLOQrGJ7LGRgZy65rjnafrgB2UoumE4Jt8A6otOdjIiG
     type: openai_embedding # or azure_openai_embedding
-    model: text-embedding-3-small
-    api_base: https://yunwu.ai/v1
+    model: #TODO
+    api_base: #TODO
     # api_version: 2024-02-15-preview
     # organization: <organization_id>
     # deployment_name: <azure_model_deployment_name>

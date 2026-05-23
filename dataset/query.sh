@@ -2,9 +2,9 @@
 
 eval_mode="DocQA"
 
-api_key="" #TODO
-api_base="" #TODO
-engine="llama3.1:8b4k" # llm engine
+api_key="sk-GPKz0LPEDWO6sJMT0" #TODO
+api_base="http://localhost:8327/v1"
+engine="gpt-5.5" # llm engine
 
 output_dir="archrag_index" # output index path
 base_path="archrag" # input dataset path 
@@ -12,7 +12,11 @@ base_path="archrag" # input dataset path
 relationship_filename="create_final_relationships.parquet"
 entity_filename="create_final_entities.parquet"
 
-dataset_name="multihop"
+dataset_name="demo"
+dataset_path="qa.jsonl"
+embedding_model="BAAI/bge-m3"
+embedding_api_key="dummy"
+embedding_api_base="http://localhost:8080/v1"
 
 strategy="global"
 k_each_level=5
@@ -40,12 +44,13 @@ nohup python -u $python_file --strategy $strategy --k_each_level $k_each_level \
     --k_final $k_final --all_k_inference $all_k_inference --topk_e $topk_e \
     --generate_strategy $generate_strategy --response_type $response_type \
     --temperature $temperature --eval_mode $eval_mode \
-    --output_dir $output_dir --base_path $base_path --dataset_name $dataset_name \
+    --output_dir $output_dir --base_path $base_path --dataset_name $dataset_name --dataset_path $dataset_path \
     --relationship_filename $relationship_filename --entity_filename $entity_filename \
     --only_entity $only_entity --ppr_refine $ppr_refine \
     --involve_llm_res $involve_llm_res --topk_chunk $topk_chunk  \
+    --embedding_model $embedding_model --embedding_api_key $embedding_api_key --embedding_api_base $embedding_api_base \
     --engine $engine --num_workers $num_workers \
-    --api_key $api_key --api_base $api_base \
+    --api_key $api_key --api_base $api_base --disable_wandb true \
     >$log_file 2>&1 &
 
 echo "log file: $log_file"
