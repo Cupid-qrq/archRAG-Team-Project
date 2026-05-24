@@ -7,6 +7,8 @@ from src.lm_emb import openai_embedding
 from src.hchnsw_index import read_index
 from src.client_reasoning import *
 from sklearn.metrics.pairwise import cosine_similarity
+from src.query_classifier import classify_query_type, get_type_priors
+from src.hypernode import generate_hypernodes, compute_hypernode_entity_scores, rerank_by_path_consensus
 
 
 def hcarag(
@@ -135,16 +137,25 @@ def hcarag_retrieval(
     #     final_predictions = index_id_list + preds_flat.tolist()
     # else:    
     all_results = []
+    strategy = query_paras.get("strategy", "global")
+
     if query_paras["only_entity"] is True:
         query_max_levl = 1
     elif query_paras["wo_hierarchical"] is False:
         query_max_levl = 2
+    elif strategy == "all":
+        query_max_levl = int(query_paras["range_level"]) + 1
+        print("Using GraphRAG method.")
+    elif strategy == "adaptive":
+        qtype = query_paras.get("_query_type", "multi_hop")
+        if qtype == "single_hop":
+            query_max_levl = min(2, hc_level + 1)
+        elif qtype == "multi_hop":
+            query_max_levl = min(hc_level, hc_level + 1)
+        else:  # global
+            query_max_levl = hc_level + 1
     else:
         query_max_levl = hc_level + 1
-
-    if query_paras['strategy'] == "all":
-        query_max_levl = int(query_paras['range_level']) + 1
-        print("Using GraphRAG method.")
 
 
     for level in range(query_max_levl):
@@ -161,6 +172,29 @@ def hcarag_retrieval(
         for dist, villa_pred in zip(distances_flat, preds_flat):
             all_results.append((dist, villa_pred))
 
+    # === HyperNode 通道（新增，可开关）===
+    if query_paras.get("use_hypernode", False):
+        hypernodes, triple_map = generate_hypernodes(
+            query_embedding=query_embedding,
+            relation_df=relation_df,
+            graph=graph,
+            topk_seeds=query_paras.get("hypernode_topk_seeds", 10),
+            max_hops=query_paras.get("hypernode_max_hops", 2),
+            topk_per_hop=query_paras.get("hypernode_topk_per_hop", 10),
+        )
+        if hypernodes:
+            hypernode_scores = compute_hypernode_entity_scores(
+                hypernodes, triple_map, entity_df
+            )
+            max_score = max(hypernode_scores.values()) if hypernode_scores else 1.0
+            for idx_id, score in hypernode_scores.items():
+                all_results.append((1.0 - (score / max_score), idx_id))
+            query_paras["_hypernode_scores"] = hypernode_scores
+        else:
+            query_paras["_hypernode_scores"] = {}
+    else:
+        query_paras["_hypernode_scores"] = {}
+
     # 根据距离排序，选择距离最小的 final_k 个结果
     all_results = sorted(all_results, key=lambda x: x[0])
 
@@ -175,6 +209,14 @@ def hcarag_retrieval(
 
     # 提取最终的预测值（实体索引）
     final_predictions = [pred for _, pred in final_results]
+
+    # 路径共识重排序
+    if (query_paras.get("use_path_consensus", False)
+            and query_paras.get("_hypernode_scores")):
+        final_predictions = rerank_by_path_consensus(
+            final_predictions,
+            query_paras["_hypernode_scores"],
+        )
 
     # 用于存储 top-k 的实体和社区
     topk_entity = entity_df[entity_df["index_id"].isin(final_predictions)]
@@ -210,51 +252,67 @@ def hcarag_retrieval(
         topk_chunk_df = chunk_df.iloc[retrieval_context_idx]
         retrieval_dict["topk_chunk"] = topk_chunk_df
 
-    if query_paras["ppr_refine"] is False:
-        return retrieval_dict, token_used
-    else:
-
-        # 从 topk_entity 获取 ppr 所需的 personalization 信息
+    if query_paras.get("ppr_refine", False):
         siz = len(topk_entity["human_readable_id"])
+        if siz == 0:
+            return retrieval_dict, token_used
         personalization = {id: 1.0 / siz for id in topk_entity["human_readable_id"]}
-
-        # 调用 nx 库 pagerank 方法，获得图的 pagerank 字典
         pagerank = nx.pagerank(graph, personalization=personalization)
 
-        # 从 pagerank 字典中找到 rank 前 ppr_topk 的元素，将其id加入 ppr_topk_id
-        ppr_topk = query_paras["k_final"]
-        ppr_topk_id = [
-            id
-            for id, value in sorted(
-                pagerank.items(), key=lambda item: item[1], reverse=True
-            )[:ppr_topk]
-        ]
-
-        # 提取最终的预测值（实体索引）
-        ppr_final_predictions = [
-            id
-            for id in entity_df[
-                entity_df["human_readable_id"].isin(ppr_topk_id)
-            ].index_id
-        ]
-
-        # 用于存储 ppr top-k 的实体和社区
-        ppr_topk_entity = entity_df[entity_df["index_id"].isin(ppr_final_predictions)]
-        ppr_sel_r_df = relation_df[
-            relation_df["source_index_id"].isin(ppr_final_predictions)
-        ].copy()
-        if len(ppr_sel_r_df) == 0:
-            ppr_topk_related_r = pd.DataFrame(columns=relation_df.columns)
-        else:
-            ppr_topk_related_r = get_topk_related_r(
-                query_embedding, ppr_sel_r_df, topk=query_paras["topk_e"]
+        if query_paras.get("ppr_merge", False):
+            # 新模式：PPR 结果加入 all_results 统一排序
+            max_pr = max(pagerank.values()) if pagerank else 1.0
+            hr_to_idx = dict(zip(
+                entity_df["human_readable_id"], entity_df["index_id"]
+            ))
+            for hr_id, score in pagerank.items():
+                idx_id = hr_to_idx.get(hr_id)
+                if idx_id is not None:
+                    all_results.append((1.0 - (score / max_pr), idx_id))
+            all_results.sort(key=lambda x: x[0])
+            final_predictions = [pred for _, pred in all_results[:final_k]]
+            # 更新 topk_entity / topk_related_r
+            topk_entity = entity_df[entity_df["index_id"].isin(final_predictions)]
+            sel_r_df = relation_df[
+                relation_df["source_index_id"].isin(final_predictions)
+            ].copy()
+            topk_related_r = (
+                get_topk_related_r(query_embedding, sel_r_df, topk=query_paras["topk_e"])
+                if len(sel_r_df) > 0
+                else pd.DataFrame(columns=relation_df.columns)
             )
-
-        retrieval_dict["topk_entity"] = ppr_topk_entity
-        retrieval_dict["topk_related_r"] = ppr_topk_related_r
-
+            retrieval_dict["topk_entity"] = topk_entity
+            retrieval_dict["topk_related_r"] = topk_related_r
+        else:
+            # 旧模式：PPR 替换（保持原逻辑不变）
+            ppr_topk = query_paras["k_final"]
+            ppr_topk_id = [
+                id
+                for id, value in sorted(
+                    pagerank.items(), key=lambda item: item[1], reverse=True
+                )[:ppr_topk]
+            ]
+            ppr_final_predictions = [
+                id
+                for id in entity_df[
+                    entity_df["human_readable_id"].isin(ppr_topk_id)
+                ].index_id
+            ]
+            ppr_topk_entity = entity_df[entity_df["index_id"].isin(ppr_final_predictions)]
+            ppr_sel_r_df = relation_df[
+                relation_df["source_index_id"].isin(ppr_final_predictions)
+            ].copy()
+            if len(ppr_sel_r_df) == 0:
+                ppr_topk_related_r = pd.DataFrame(columns=relation_df.columns)
+            else:
+                ppr_topk_related_r = get_topk_related_r(
+                    query_embedding, ppr_sel_r_df, topk=query_paras["topk_e"]
+                )
+            retrieval_dict["topk_entity"] = ppr_topk_entity
+            retrieval_dict["topk_related_r"] = ppr_topk_related_r
         return retrieval_dict, token_used
-        # return ppr_topk_entity, topk_community, ppr_topk_related_r, token_used
+    else:
+        return retrieval_dict, token_used
 
 
 def hcarag_inference(
@@ -415,6 +473,30 @@ def load_strategy(
         for k in k_per_level:
             print(k, end="; ")
         return k_final, k_per_level, all_token
+    elif strategy == "adaptive":
+        k_final = query_paras["k_final"]
+        query_type = classify_query_type(query_paras["query_content"])
+        priors = get_type_priors(query_type, number_levels)
+
+        if query_paras.get("use_llm_level_scoring", False):
+            llm_weights, raw_result, all_token = problem_reasoning(
+                query_content=query_paras["query_content"],
+                entity_df=entity_df,
+                community_df=community_df,
+                level_summary_df=level_summary_df,
+                max_level=number_levels - 1,
+                max_retries=args.max_retries,
+                args=args,
+            )
+            combined = [p * 0.6 + l * 0.4 for p, l in zip(priors, llm_weights)]
+            k_per_level = calculate_k_per_level(combined, query_paras["all_k_adaptive"])
+            query_paras["_query_type"] = query_type
+            return k_final, k_per_level, all_token
+        else:
+            all_k = query_paras.get("all_k_adaptive", 50)
+            k_per_level = calculate_k_per_level(priors, all_k)
+            query_paras["_query_type"] = query_type
+            return k_final, k_per_level, 0
     else:
         raise ValueError("Invalid strategy.")
 

@@ -50,7 +50,8 @@ nohup python -u $python_file --strategy $strategy --k_each_level $k_each_level \
     --involve_llm_res $involve_llm_res --topk_chunk $topk_chunk  \
     --embedding_model $embedding_model --embedding_api_key $embedding_api_key --embedding_api_base $embedding_api_base \
     --engine $engine --num_workers $num_workers \
-    --api_key $api_key --api_base $api_base --disable_wandb true \
+    --api_key $api_key --api_base $api_base --all_k_adaptive 50 --use_hypernode true --hypernode_max_hops 2 \
+    --hypernode_topk_seeds 10 --use_path_consensus true --ppr_merge true --disable_wandb true \
     >$log_file 2>&1 &
 
 echo "log file: $log_file"
