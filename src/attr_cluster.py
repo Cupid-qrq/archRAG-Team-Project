@@ -415,6 +415,8 @@ def attr_cluster(
     args,
     max_level=4,
     min_clusters=5,
+    triple_text_mapping=None,
+    chunk_weights=None,
 ):
     level = 1
     graph = init_graph
@@ -516,6 +518,8 @@ def attr_cluster(
                 level_dict=level_dict,
                 error_save_path=tmp_comunity_df_error,
                 args=args,
+                triple_text_mapping=triple_text_mapping or {},
+                chunk_weights=chunk_weights or {},
             )
             all_token += cur_token
             print(f"cur token usage for current level: {cur_token}")
