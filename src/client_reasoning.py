@@ -1,5 +1,6 @@
 import json
 import re
+import ast
 import pandas as pd
 import numpy as np
 import math
@@ -360,7 +361,8 @@ id|title|content|rank \n
         chunk_str = community_str
 
         for idx, row in community_df.iterrows():
-            new_entry = f"{row['community_id']}|{row['title']}|{row['summary']}|{row['rating']}\n"
+            content = _community_prompt_content(row)
+            new_entry = f"{row['community_id']}|{row['title']}|{content}|{row['rating']}\n"
             # Check if adding the new entry exceeds max_tokens
             if max_tokens and num_tokens(chunk_str + new_entry) > max_tokens:
                 # Add current chunk to the results
@@ -375,6 +377,47 @@ id|title|content|rank \n
             res_list.append(chunk_str)
 
     return res_list
+
+
+def _community_prompt_content(row) -> str:
+    source_texts = _coerce_prompt_list(row.get("source_texts", []))
+    source_text_unit_ids = _coerce_prompt_list(row.get("source_text_unit_ids", []))
+    if source_texts:
+        evidence_lines = []
+        for idx, text in enumerate(source_texts):
+            text_unit_id = (
+                source_text_unit_ids[idx]
+                if idx < len(source_text_unit_ids)
+                else "unknown"
+            )
+            evidence_lines.append(f"[TextUnit {text_unit_id}] {text}")
+        return "Source evidence: " + " ".join(evidence_lines)
+    return row.get("summary", "")
+
+
+def _coerce_prompt_list(value):
+    if value is None:
+        return []
+    if isinstance(value, float) and pd.isna(value):
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, tuple):
+        return list(value)
+    if isinstance(value, str):
+        value = value.strip()
+        if not value:
+            return []
+        try:
+            parsed = ast.literal_eval(value)
+            if isinstance(parsed, list):
+                return parsed
+            if isinstance(parsed, tuple):
+                return list(parsed)
+            return [parsed]
+        except (ValueError, SyntaxError):
+            return [value]
+    return [value]
 
 
 def prep_map_content(

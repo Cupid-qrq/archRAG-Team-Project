@@ -40,6 +40,8 @@ python_file="src/evaluate/test_qa.py"
 
 log_file="eval.log"
 
+export PYTHONPATH="$(pwd):${PYTHONPATH:-}"
+
 nohup python -u $python_file --strategy $strategy --k_each_level $k_each_level \
     --k_final $k_final --all_k_inference $all_k_inference --topk_e $topk_e \
     --generate_strategy $generate_strategy --response_type $response_type \

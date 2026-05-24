@@ -4,6 +4,12 @@ from src.utils import *
 from attr_cluster import attr_cluster
 from src.hchnsw_index import create_hchnsw_index
 from src.client_reasoning import level_summary
+from src.triple_text_mapping import (
+    build_triple_text_mapping,
+    read_text_units,
+    save_triple_text_artifacts,
+    write_community_source_table,
+)
 import time
 
 
@@ -19,6 +25,37 @@ def make_hc_index(args):
         entity_filename=args.entity_filename,
         relationship_filename=args.relationship_filename,
     )
+
+    triple_text_mapping = {}
+    chunk_weights = {}
+    if args.enable_triple_text_mapping:
+        text_units_df = read_text_units(
+            args.base_path,
+            text_unit_filename=args.text_unit_filename,
+        )
+        if text_units_df is None:
+            print(
+                "Triple-text mapping enabled, but create_final_text_units was not found. "
+                "Continuing without source-text evidence."
+            )
+        else:
+            triple_text_mapping, chunk_weights = build_triple_text_mapping(
+                final_relationships,
+                text_units_df,
+            )
+            save_triple_text_artifacts(
+                args.output_dir,
+                triple_text_mapping,
+                chunk_weights,
+            )
+            mapped = sum(
+                1 for info in triple_text_mapping.values() if info.get("source_chunks")
+            )
+            print(
+                "Built triple-text mapping: "
+                f"{mapped}/{len(triple_text_mapping)} relationships mapped to source text."
+            )
+
     entities_df, graph = process_entity_embedding(entities_df, graph, args)
     print(
         f"Finished reading graph in {time.time() - overall_start_time:.2f} seconds ()"
@@ -31,6 +68,8 @@ def make_hc_index(args):
         args=args,
         max_level=args.max_level,
         min_clusters=args.min_clusters,
+        triple_text_mapping=triple_text_mapping,
+        chunk_weights=chunk_weights,
     )
     all_token += token_usage
     print(f"Token usage for clustering: {token_usage}")
@@ -41,6 +80,16 @@ def make_hc_index(args):
 
     c_df_save_path = os.path.join(args.output_dir, "community_df_intermediate.csv")
     community_df.to_csv(c_df_save_path, index=False)
+    if triple_text_mapping:
+        source_text_max_tokens = args.source_text_max_tokens or args.max_tokens
+        write_community_source_table(
+            community_df,
+            args.output_dir,
+            triple_text_mapping,
+            chunk_weights,
+            top_k=args.source_text_top_k,
+            max_tokens=source_text_max_tokens,
+        )
 
     if args.entity_second_embedding:
         print("Need to compute entity embedding")

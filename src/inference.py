@@ -9,6 +9,11 @@ from src.client_reasoning import *
 from sklearn.metrics.pairwise import cosine_similarity
 from src.query_classifier import classify_query_type, get_type_priors
 from src.hypernode import generate_hypernodes, compute_hypernode_entity_scores, rerank_by_path_consensus
+from src.triple_text_mapping import (
+    enrich_community_with_source_text,
+    enrich_relationships_with_source_text,
+    load_triple_text_artifacts,
+)
 
 
 def hcarag(
@@ -30,6 +35,8 @@ def hcarag(
         villa_index=index_dict["villa_index"],
         chunk_df=index_dict["chunk_df"],
         graph=index_dict["graph"],
+        triple_text_mapping=index_dict.get("triple_text_mapping", {}),
+        chunk_weights=index_dict.get("chunk_weights", {}),
         args=args,
     )
 
@@ -83,6 +90,8 @@ def hcarag_retrieval(
     chunk_df,
     query_paras,
     graph,
+    triple_text_mapping,
+    chunk_weights,
     args,
 ):
     query_paras["query_content"] = query_content
@@ -190,10 +199,20 @@ def hcarag_retrieval(
             for idx_id, score in hypernode_scores.items():
                 all_results.append((1.0 - (score / max_score), idx_id))
             query_paras["_hypernode_scores"] = hypernode_scores
+            query_paras["_hypernode_relation_ids"] = list(
+                {
+                    str(triple_map[tid].get("id"))
+                    for hn in hypernodes
+                    for tid in hn.triple_ids
+                    if triple_map.get(tid) is not None
+                }
+            )
         else:
             query_paras["_hypernode_scores"] = {}
+            query_paras["_hypernode_relation_ids"] = []
     else:
         query_paras["_hypernode_scores"] = {}
+        query_paras["_hypernode_relation_ids"] = []
 
     # 根据距离排序，选择距离最小的 final_k 个结果
     all_results = sorted(all_results, key=lambda x: x[0])
@@ -232,6 +251,20 @@ def hcarag_retrieval(
         topk_related_r = get_topk_related_r(
             query_embedding, sel_r_df, topk=query_paras["topk_e"]
         )
+
+    topk_related_r = add_hypernode_related_relations(
+        topk_related_r,
+        relation_df,
+        query_paras,
+    )
+
+    topk_community, topk_related_r = attach_source_texts(
+        topk_community,
+        topk_related_r,
+        triple_text_mapping,
+        chunk_weights,
+        args,
+    )
 
     retrieval_dict = {
         "topk_entity": topk_entity,
@@ -281,7 +314,21 @@ def hcarag_retrieval(
                 if len(sel_r_df) > 0
                 else pd.DataFrame(columns=relation_df.columns)
             )
+            topk_related_r = add_hypernode_related_relations(
+                topk_related_r,
+                relation_df,
+                query_paras,
+            )
+            topk_community = community_df[community_df["index_id"].isin(final_predictions)]
+            topk_community, topk_related_r = attach_source_texts(
+                topk_community,
+                topk_related_r,
+                triple_text_mapping,
+                chunk_weights,
+                args,
+            )
             retrieval_dict["topk_entity"] = topk_entity
+            retrieval_dict["topk_community"] = topk_community
             retrieval_dict["topk_related_r"] = topk_related_r
         else:
             # 旧模式：PPR 替换（保持原逻辑不变）
@@ -308,11 +355,70 @@ def hcarag_retrieval(
                 ppr_topk_related_r = get_topk_related_r(
                     query_embedding, ppr_sel_r_df, topk=query_paras["topk_e"]
                 )
+            ppr_topk_related_r = add_hypernode_related_relations(
+                ppr_topk_related_r,
+                relation_df,
+                query_paras,
+            )
+            ppr_topk_community = community_df[
+                community_df["index_id"].isin(ppr_final_predictions)
+            ]
+            ppr_topk_community, ppr_topk_related_r = attach_source_texts(
+                ppr_topk_community,
+                ppr_topk_related_r,
+                triple_text_mapping,
+                chunk_weights,
+                args,
+            )
             retrieval_dict["topk_entity"] = ppr_topk_entity
+            retrieval_dict["topk_community"] = ppr_topk_community
             retrieval_dict["topk_related_r"] = ppr_topk_related_r
         return retrieval_dict, token_used
-    else:
-        return retrieval_dict, token_used
+    return retrieval_dict, token_used
+
+
+def add_hypernode_related_relations(topk_related_r, relation_df, query_paras):
+    hypernode_relation_ids = query_paras.get("_hypernode_relation_ids", [])
+    if not hypernode_relation_ids:
+        return topk_related_r
+
+    hypernode_related_r = relation_df[
+        relation_df["id"].astype(str).isin(hypernode_relation_ids)
+    ].copy()
+    if len(hypernode_related_r) == 0:
+        return topk_related_r
+    return pd.concat(
+        [topk_related_r, hypernode_related_r],
+        ignore_index=True,
+    ).drop_duplicates(subset=["id"], keep="first")
+
+
+def attach_source_texts(
+    topk_community,
+    topk_related_r,
+    triple_text_mapping,
+    chunk_weights,
+    args,
+):
+    if not getattr(args, "enable_triple_text_mapping", True) or not triple_text_mapping:
+        return topk_community, topk_related_r
+
+    source_text_max_tokens = args.source_text_max_tokens or args.max_tokens
+    topk_community = enrich_community_with_source_text(
+        topk_community,
+        triple_text_mapping,
+        chunk_weights,
+        top_k=args.source_text_top_k,
+        max_tokens=source_text_max_tokens,
+    )
+    topk_related_r = enrich_relationships_with_source_text(
+        topk_related_r,
+        triple_text_mapping,
+        chunk_weights,
+        top_k=1,
+        max_tokens=source_text_max_tokens,
+    )
+    return topk_community, topk_related_r
 
 
 def hcarag_inference(
@@ -565,6 +671,18 @@ def load_index(args):
 
     relation_df["embedding"] = relation_df["embedding_idx"].map(idx_embed_map)
 
+    if getattr(args, "enable_triple_text_mapping", True):
+        triple_text_mapping, chunk_weights = load_triple_text_artifacts(args.output_dir)
+        if triple_text_mapping:
+            print(
+                "Loaded triple-text mapping: "
+                f"{len(triple_text_mapping)} relationships with source evidence metadata."
+            )
+        else:
+            print("Triple-text mapping artifacts not found; continuing without source evidence.")
+    else:
+        triple_text_mapping, chunk_weights = {}, {}
+
     if args.topk_chunk > 0:
         villa_index, chunk_df = load_villa_index(args)
     else:
@@ -585,6 +703,8 @@ def load_index(args):
         "villa_index": villa_index,
         "chunk_df": chunk_df,
         "graph": graph,
+        "triple_text_mapping": triple_text_mapping,
+        "chunk_weights": chunk_weights,
     }
 
     print("Index loaded successfully.")
