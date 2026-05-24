@@ -1,0 +1,9 @@
+Cross-agency storm scenario
+
+The final exercise for the first year simulated a coastal storm that hit East Market, Bayview, and North Pier at the same time. Heavy rain pushed water toward Old Canal Pump Station, a grid outage affected Bayview Hospital, and evacuation demand increased at North Pier Shelter.
+
+In the scenario, BlueRiver Water Authority issued a flood alert for Old Canal Pump Station. HarborGrid Energy switched Bayview Hospital into microgrid island mode and reported battery reserve through the common event schema. MetroLink Transit activated Route 7 service from East Market Depot to Bayview Hospital and North Pier Shelter. Civic Data Trust published signed data packages from all three agencies on the Open Harbor Portal.
+
+The exercise revealed why the program uses an attributed, cross-agency view of the city. The hospital microgrid mattered to transit because Route 7 carried medical staff. The pump station mattered to the shelter because flooded streets could block access. The common event schema mattered to all agencies because it gave responders a shared incident timeline.
+
+The review board concluded that the strongest evidence of progress came from multi-agency dependencies, not from isolated project completion. The next phase will test whether Route 7 detours, Bayview Hospital microgrid status, and Old Canal Pump Station alerts can be interpreted together during a live storm.

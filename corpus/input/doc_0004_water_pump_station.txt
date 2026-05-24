@@ -1,0 +1,9 @@
+BlueRiver Water Authority flood controls
+
+BlueRiver Water Authority manages stormwater and sewer infrastructure for Aurora Harbor. Its highest priority project in the first year is the Old Canal Pump Station near North Pier. During heavy rain, Old Canal Pump Station previously suffered flooding and sewer overflows because the old pump controls could not react quickly enough to tide changes and stormwater surges.
+
+BlueRiver upgraded Old Canal Pump Station with new water-level sensors, variable-speed pumps, and a remote control panel. The upgrade allows operators to start pumping earlier when the tide is rising and to reduce pump speed when the sewer system is close to capacity.
+
+The pump station is connected to the broader resilience program in two ways. First, North Pier Shelter depends on dry streets around the shelter entrance. Second, Civic Data Trust receives water alert events from BlueRiver and publishes simplified public notices on the Open Harbor Portal.
+
+BlueRiver also works with HarborGrid Energy on backup power planning. If the pump station loses grid power, HarborGrid can prioritize a mobile generator. If the North Pier area is already flooding, MetroLink can reroute Route 7 buses around Old Canal Road while keeping service to North Pier Shelter.

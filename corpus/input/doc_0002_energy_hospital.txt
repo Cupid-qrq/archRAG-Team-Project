@@ -1,0 +1,9 @@
+HarborGrid Energy and the Bayview Hospital microgrid
+
+HarborGrid Energy selected Bayview Hospital as the first microgrid site because the hospital's emergency department must keep ventilators, medicine refrigeration, and operating rooms online during power outages. Hospital administrators reported that a previous storm forced the emergency department to delay noncritical surgery and move refrigerated medicine to backup coolers.
+
+The Bayview Hospital microgrid combines rooftop solar, a battery energy storage system, and a natural gas backup generator. HarborGrid chose SunForge Systems as the battery integrator after reviewing proposals from three vendors. SunForge Systems is responsible for the battery control software, islanding tests, and the connection between the battery cabinet and the hospital switchgear.
+
+The project is linked to MetroLink Transit because Route 7 brings patients, nurses, and emergency volunteers from East Market Depot to Bayview Hospital before continuing to North Pier Shelter. During a grid outage, the hospital microgrid gives the transit command center a stable destination where medical staff can report for duty.
+
+HarborGrid reports microgrid status events to Civic Data Trust through the common event schema. The most important status fields are site name, outage mode, battery reserve percentage, generator state, and expected runtime. Civic Data Trust publishes aggregate status to the Open Harbor Portal, but it does not publish protected hospital patient data.

@@ -1,0 +1,9 @@
+MetroLink Transit emergency routes
+
+MetroLink Transit redesigned its storm plan around Route 7. Route 7 connects East Market Depot, Bayview Hospital, and North Pier Shelter. The route was selected because it links the main bus garage, the first microgrid hospital, and the largest public shelter in the same operating corridor.
+
+East Market Depot stores the electric buses used for the emergency shuttle. The depot also hosts a charging bay that can be powered by HarborGrid during a limited outage. Bayview Hospital is the main medical stop. North Pier Shelter is the final stop for residents who need temporary housing during evacuation orders.
+
+During the spring storm drill, Route 7 carried simulated patients and shelter volunteers between all three locations. Most parts of the drill worked, but one bus priority signal near Harbor Avenue failed. The failed signal delayed two buses and forced MetroLink dispatchers to use radio instructions until the traffic operations team reset the controller.
+
+MetroLink now sends route closure events, bus priority events, and shelter shuttle counts to Civic Data Trust. Rafael Ortiz designed the common event schema that lets MetroLink, HarborGrid, and BlueRiver use consistent names for incidents, locations, timestamps, severity, and public messages.

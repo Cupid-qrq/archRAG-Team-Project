@@ -1,0 +1,9 @@
+Civic Data Trust and the Open Harbor Portal
+
+Civic Data Trust operates the Open Harbor Portal for the Aurora Harbor Resilience Program. The portal gives residents a single place to see emergency bus route status, hospital microgrid status, shelter updates, water alerts, and program spending summaries.
+
+Rafael Ortiz, the lead data architect at Civic Data Trust, designed the common event schema used by MetroLink Transit, HarborGrid Energy, BlueRiver Water Authority, and the Mayor's Office. The schema defines standard fields for event type, agency, location, timestamp, severity, public message, and source signature. The shared schema lets a transit event, water alert, or microgrid update appear in the same incident timeline.
+
+Civic Data Trust enforces a privacy restriction across the portal. It prohibits publishing personally identifiable hospital patient data or individual transit card records. The portal may show aggregate patient transfer counts and aggregate bus passenger counts, but it must not show names, medical record numbers, personal addresses, or individual fare card histories.
+
+The data governance policy also requires each agency to retain its own operational system. The portal is a publishing layer, not the system of record. MetroLink keeps the official dispatch log, HarborGrid keeps the official outage log, and BlueRiver keeps the official pump control history.

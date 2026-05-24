@@ -1,0 +1,9 @@
+Cybersecurity and signed data packages
+
+The Aurora Harbor Resilience Program uses signed data packages to protect public emergency information. A signed data package is a bundle of event data, timestamp metadata, and a cryptographic signature from the source agency. Responders use the signature to verify that water alerts, shelter updates, transit route changes, and microgrid status messages were issued by the correct agency and were not changed in transit.
+
+Civic Data Trust introduced signed data packages after a tabletop exercise showed how confusing false shelter messages could become during a storm. The system does not make every operational system public. Instead, each agency signs a limited public event package and sends it to the Open Harbor Portal.
+
+The security drill tested four message types. MetroLink signed a Route 7 detour notice. HarborGrid signed a Bayview Hospital microgrid status update. BlueRiver signed an Old Canal Pump Station flood alert. The Mayor's Office signed a North Pier Shelter capacity update.
+
+The drill showed that responders could verify water alerts and shelter updates by checking the package signature before forwarding the message to radio operators or social media staff. The audit team recommended making signature verification part of every emergency operations checklist.

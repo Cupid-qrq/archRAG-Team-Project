@@ -1,0 +1,9 @@
+Aurora Harbor Resilience Program overview
+
+The Aurora Harbor Resilience Program is a citywide resilience initiative created after three coastal storm seasons exposed weaknesses in transportation, power, water, health care, and public communications. The program is coordinated by the Aurora Harbor Mayor's Office, and the implementation board includes MetroLink Transit, HarborGrid Energy, BlueRiver Water Authority, and Civic Data Trust.
+
+Maya Chen, the deputy mayor for infrastructure, chairs the implementation board. Her main rule is that every technical milestone must be tied to a public service outcome. She wants the next quarterly report to connect spending, technical milestones, and service outcomes so residents can see whether the program is improving emergency mobility, backup power, flood control, and data reliability.
+
+The program is intentionally organized around shared dependencies. MetroLink Transit is responsible for emergency bus routing. HarborGrid Energy is responsible for microgrids and battery storage. BlueRiver Water Authority is responsible for flood pumps and sewer overflow controls. Civic Data Trust is responsible for the Open Harbor Portal and the shared event data standard used by the other agencies.
+
+The first operating year focuses on three neighborhoods: East Market, Bayview, and North Pier. East Market has the main transit depot. Bayview contains Bayview Hospital and several senior housing blocks. North Pier contains the largest public shelter and a low-lying pump station. The program treats these neighborhoods as one connected service zone rather than three separate projects.

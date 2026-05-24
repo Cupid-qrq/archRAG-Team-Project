@@ -1,0 +1,9 @@
+Quarterly implementation review
+
+Maya Chen asked the implementation board to prepare a quarterly report that explains the program in operational terms rather than only financial terms. She said the report must connect spending, technical milestones, and service outcomes. For example, spending on the Bayview Hospital microgrid should be linked to backup runtime, successful islanding tests, and the number of critical hospital services protected during outages.
+
+The same reporting rule applies to transportation, water, and data projects. MetroLink must connect Route 7 spending to shuttle frequency, signal priority performance, and service continuity for Bayview Hospital and North Pier Shelter. BlueRiver must connect Old Canal Pump Station spending to reduced flooding, fewer sewer overflow warnings, and faster operator response times.
+
+Civic Data Trust must connect Open Harbor Portal spending to the number of signed data packages processed, the number of agencies using the common event schema, and the number of public updates published during drills. Rafael Ortiz will provide the event schema adoption metrics.
+
+The quarterly review is also expected to compare neighborhoods. East Market will be measured by depot readiness. Bayview will be measured by hospital continuity. North Pier will be measured by shelter access and pump station reliability.
