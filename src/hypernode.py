@@ -25,7 +25,7 @@ def generate_hypernodes(
     topk_seeds: int = 10,
     max_hops: int = 2,
     topk_per_hop: int = 10,
-) -> list[HyperNode]:
+) -> tuple[list[HyperNode], dict]:
     """Generate multi-hop paths by expanding from seed triples along the KG.
 
     Args:
