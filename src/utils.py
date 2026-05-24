@@ -973,6 +973,21 @@ def create_inference_arg_parser():
                         type=lambda x: x.lower() == "true", default=False,
                         help="adaptive 策略是否融合 LLM 层级评分")
 
+    # HyperNode
+    parser.add_argument("--use_hypernode",
+                        type=lambda x: x.lower() == "true", default=False,
+                        help="启用 HyperNode 多跳路径")
+    parser.add_argument("--hypernode_max_hops", type=int, default=2,
+                        help="HyperNode 最大跳数")
+    parser.add_argument("--hypernode_topk_seeds", type=int, default=10,
+                        help="HyperNode 种子 triple 数")
+    parser.add_argument("--use_path_consensus",
+                        type=lambda x: x.lower() == "true", default=False,
+                        help="启用路径共识重排序")
+    parser.add_argument("--ppr_merge",
+                        type=lambda x: x.lower() == "true", default=False,
+                        help="PPR 与 HCHNSW 融合（默认替换）")
+
     parser.add_argument(
         "--only_entity",
         type=lambda x: x.lower() == "true",

@@ -334,6 +334,11 @@ if __name__ == "__main__":
         "range_level": args.range_level,
         "all_k_adaptive": args.all_k_adaptive,
         "use_llm_level_scoring": args.use_llm_level_scoring,
+        "use_hypernode": args.use_hypernode,
+        "hypernode_max_hops": args.hypernode_max_hops,
+        "hypernode_topk_seeds": args.hypernode_topk_seeds,
+        "use_path_consensus": args.use_path_consensus,
+        "ppr_merge": args.ppr_merge,
     }
     # query_paras = {
     #     "strategy": "global",
