@@ -8,16 +8,16 @@ max_level=6
 min_clusters=10
 max_cluster_size=15
 entity_second_embedding=True
-api_key="sk-GPKz0LPEDWO6sJMT0" #TODO
-api_base="http://localhost:8327/v1" #TODO
+api_key="" #TODO
+api_base="" #TODO
 engine="gpt-5.5" # llm engine
 
 # If you have embedding model settings, uncomment and set them here
 # And make sure to uncomment the corresponding line in the nohup command below
 # --embedding_model $embedding_model --embedding_api_key $embedding_api_key --embedding_api_base $embedding_api_base \    
-embedding_model="BAAI/bge-m3" # TODO
+embedding_model="" # TODO
 embedding_api_key="dummy"
-embedding_api_base="http://localhost:8080/v1" # TODO
+embedding_api_base="" # TODO
 
 augment_graph=True
 cluster_method="weighted_leiden"

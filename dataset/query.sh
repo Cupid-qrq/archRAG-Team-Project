@@ -2,8 +2,8 @@
 
 eval_mode="DocQA"
 
-api_key="sk-GPKz0LPEDWO6sJMT0" #TODO
-api_base="http://localhost:8327/v1"
+api_key="" #TODO
+api_base="" #TODO
 engine="gpt-5.5" # llm engine
 
 output_dir="archrag_index" # output index path
@@ -14,9 +14,9 @@ entity_filename="create_final_entities.parquet"
 
 dataset_name="demo"
 dataset_path="qa.jsonl"
-embedding_model="BAAI/bge-m3"
+embedding_model=""
 embedding_api_key="dummy"
-embedding_api_base="http://localhost:8080/v1"
+embedding_api_base=""
 
 strategy="global"
 k_each_level=5
