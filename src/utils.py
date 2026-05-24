@@ -966,6 +966,13 @@ def create_inference_arg_parser():
         help="Number of k for all inference",
     )
 
+    # Adaptive retrieval
+    parser.add_argument("--all_k_adaptive", type=int, default=50,
+                        help="adaptive 策略总检索预算")
+    parser.add_argument("--use_llm_level_scoring",
+                        type=lambda x: x.lower() == "true", default=False,
+                        help="adaptive 策略是否融合 LLM 层级评分")
+
     parser.add_argument(
         "--only_entity",
         type=lambda x: x.lower() == "true",

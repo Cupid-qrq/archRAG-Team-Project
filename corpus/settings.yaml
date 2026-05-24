@@ -2,7 +2,7 @@
 encoding_model: cl100k_base
 skip_workflows: [create_final_community_reports,create_summarized_entities,join_text_units_to_entity_ids,join_text_units_to_covariate_ids,join_text_units_to_relationship_ids]
 llm:
-  api_key: #TODO
+  api_key: "" # TODO: 本地部署填 "ollama"，云端填真实 key
   type: openai_chat # or azure_openai_chat
   model: gpt-5.5
   model_supports_json: true # recommended if this is available for your model.
@@ -32,6 +32,7 @@ embeddings:
   ## parallelization: override the global parallelization settings for embeddings
   async_mode: threaded # or asyncio
   llm:
+    api_key: "" # TODO: 本地部署填 "ollama"，云端填真实 key
     type: openai_embedding # or azure_openai_embedding
     model: #TODO
     api_base: #TODO

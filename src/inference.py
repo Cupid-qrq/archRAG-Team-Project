@@ -7,6 +7,7 @@ from src.lm_emb import openai_embedding
 from src.hchnsw_index import read_index
 from src.client_reasoning import *
 from sklearn.metrics.pairwise import cosine_similarity
+from src.query_classifier import classify_query_type, get_type_priors
 
 
 def hcarag(
@@ -135,16 +136,25 @@ def hcarag_retrieval(
     #     final_predictions = index_id_list + preds_flat.tolist()
     # else:    
     all_results = []
+    strategy = query_paras.get("strategy", "global")
+
     if query_paras["only_entity"] is True:
         query_max_levl = 1
     elif query_paras["wo_hierarchical"] is False:
         query_max_levl = 2
+    elif strategy == "all":
+        query_max_levl = int(query_paras["range_level"]) + 1
+        print("Using GraphRAG method.")
+    elif strategy == "adaptive":
+        qtype = query_paras.get("_query_type", "multi_hop")
+        if qtype == "single_hop":
+            query_max_levl = min(2, hc_level + 1)
+        elif qtype == "multi_hop":
+            query_max_levl = min(hc_level, hc_level + 1)
+        else:  # global
+            query_max_levl = hc_level + 1
     else:
         query_max_levl = hc_level + 1
-
-    if query_paras['strategy'] == "all":
-        query_max_levl = int(query_paras['range_level']) + 1
-        print("Using GraphRAG method.")
 
 
     for level in range(query_max_levl):
@@ -415,6 +425,30 @@ def load_strategy(
         for k in k_per_level:
             print(k, end="; ")
         return k_final, k_per_level, all_token
+    elif strategy == "adaptive":
+        k_final = query_paras["k_final"]
+        query_type = classify_query_type(query_paras["query_content"])
+        priors = get_type_priors(query_type, number_levels)
+
+        if query_paras.get("use_llm_level_scoring", False):
+            llm_weights, raw_result, all_token = problem_reasoning(
+                query_content=query_paras["query_content"],
+                entity_df=entity_df,
+                community_df=community_df,
+                level_summary_df=level_summary_df,
+                max_level=number_levels - 1,
+                max_retries=args.max_retries,
+                args=args,
+            )
+            combined = [p * 0.6 + l * 0.4 for p, l in zip(priors, llm_weights)]
+            k_per_level = calculate_k_per_level(combined, query_paras["all_k_adaptive"])
+            query_paras["_query_type"] = query_type
+            return k_final, k_per_level, all_token
+        else:
+            all_k = query_paras.get("all_k_adaptive", 50)
+            k_per_level = calculate_k_per_level(priors, all_k)
+            query_paras["_query_type"] = query_type
+            return k_final, k_per_level, 0
     else:
         raise ValueError("Invalid strategy.")
 

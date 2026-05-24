@@ -332,6 +332,8 @@ if __name__ == "__main__":
         "involve_llm_res": args.involve_llm_res,
         "topk_chunk": args.topk_chunk,
         "range_level": args.range_level,
+        "all_k_adaptive": args.all_k_adaptive,
+        "use_llm_level_scoring": args.use_llm_level_scoring,
     }
     # query_paras = {
     #     "strategy": "global",
