@@ -663,6 +663,32 @@ def create_arg_parser():
         help="Maximum source text tokens; 0 means use max_tokens.",
     )
 
+    # ---- Smart Stop & Quality Gating Parameters ----
+    parser.add_argument(
+        "--smart_stop",
+        type=lambda x: x.lower() == "true",
+        default=True,
+        help="Enable smart stop conditions (convergence, quality threshold) for iterative clustering.",
+    )
+    parser.add_argument(
+        "--quality_threshold",
+        type=float,
+        default=2.5,
+        help="Stop clustering if average community rating falls below this threshold.",
+    )
+    parser.add_argument(
+        "--quality_filter",
+        type=lambda x: x.lower() == "true",
+        default=False,
+        help="Filter out low-quality communities before building the next level graph.",
+    )
+    parser.add_argument(
+        "--min_community_rating",
+        type=float,
+        default=2.0,
+        help="Minimum LLM rating for a community to be kept when quality_filter is enabled.",
+    )
+
     # add LLM parameters
     parser.add_argument(
         "--api_key",
