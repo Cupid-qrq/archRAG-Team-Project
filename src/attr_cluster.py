@@ -153,6 +153,188 @@ def compute_leiden_max_size(
     return c_n_mapping
 
 
+def _final_leiden_mapping(
+    graph: nx.Graph, max_cluster_size: int, seed=0xDEADBEEF, weighted=True
+):
+    community_mapping = hierarchical_leiden(
+        graph,
+        max_cluster_size=max_cluster_size,
+        random_seed=seed,
+        is_weighted=weighted,
+    )
+    c_n_mapping: dict[str, list[int]] = {}
+    node_cluster: dict[str, str] = {}
+
+    for partition in community_mapping:
+        if not partition.is_final_cluster:
+            continue
+        community_id = str(partition.cluster)
+        if community_id not in c_n_mapping:
+            c_n_mapping[community_id] = []
+        c_n_mapping[community_id].append(partition.node)
+        node_cluster[partition.node] = community_id
+
+    return c_n_mapping, node_cluster
+
+
+def _community_size_stats(c_n_mapping):
+    sizes = np.array([len(nodes) for nodes in c_n_mapping.values()], dtype=float)
+    if sizes.size == 0:
+        return 0.0, 0.0, 0.0
+    singleton_ratio = float(np.mean(sizes == 1))
+    mean_size = float(np.mean(sizes))
+    size_imbalance = float(np.std(sizes) / mean_size) if mean_size > 0 else 0.0
+    return singleton_ratio, size_imbalance, float(np.max(sizes))
+
+
+def _semantic_cohesion(graph: nx.Graph, c_n_mapping):
+    scores = []
+    for nodes in c_n_mapping.values():
+        if len(nodes) <= 1:
+            continue
+        embeddings = []
+        for node in nodes:
+            embedding = np.array(graph.nodes[node].get("embedding"), dtype=np.float32)
+            embeddings.append(embedding)
+        matrix = np.vstack(embeddings)
+        norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+        norms[norms == 0] = 1.0
+        matrix = matrix / norms
+        centroid = matrix.mean(axis=0)
+        centroid_norm = np.linalg.norm(centroid)
+        if centroid_norm == 0:
+            continue
+        centroid = centroid / centroid_norm
+        scores.append(float(np.mean(matrix @ centroid)))
+    if not scores:
+        return 0.0
+    return float(np.mean(scores))
+
+
+def _conductance_penalty(graph: nx.Graph, node_cluster):
+    internal_weight = 0.0
+    cut_weight = 0.0
+    for u, v, data in graph.edges(data=True):
+        weight = float(data.get("weight", 1.0))
+        if node_cluster.get(u) == node_cluster.get(v):
+            internal_weight += weight
+        else:
+            cut_weight += weight
+    total = internal_weight + cut_weight
+    if total <= 0:
+        return 0.0
+    return cut_weight / total
+
+
+def _partition_modularity(graph: nx.Graph, c_n_mapping, weighted=True):
+    communities = [set(nodes) for nodes in c_n_mapping.values() if nodes]
+    if not communities or graph.number_of_edges() == 0:
+        return 0.0
+    weight = "weight" if weighted else None
+    return nx.algorithms.community.quality.modularity(
+        graph,
+        communities,
+        weight=weight,
+    )
+
+
+def _score_partition(graph, c_n_mapping, node_cluster, target_size, weighted=True):
+    modularity = _partition_modularity(graph, c_n_mapping, weighted=weighted)
+    cohesion = _semantic_cohesion(graph, c_n_mapping)
+    conductance = _conductance_penalty(graph, node_cluster)
+    singleton_ratio, size_imbalance, max_size = _community_size_stats(c_n_mapping)
+    oversized_penalty = max(0.0, (max_size - target_size) / max(float(target_size), 1.0))
+
+    score = (
+        modularity
+        + cohesion
+        - conductance
+        - singleton_ratio
+        - 0.5 * size_imbalance
+        - oversized_penalty
+    )
+    if not np.isfinite(score):
+        score = float("-inf")
+    return score, {
+        "modularity": modularity,
+        "semantic_cohesion": cohesion,
+        "conductance_penalty": conductance,
+        "singleton_ratio": singleton_ratio,
+        "size_imbalance_penalty": size_imbalance,
+        "oversized_penalty": oversized_penalty,
+        "max_size": max_size,
+        "communities": len(c_n_mapping),
+    }
+
+
+def _is_effective_partition(graph, c_n_mapping, stats):
+    if not c_n_mapping:
+        return False
+    if len(c_n_mapping) >= graph.number_of_nodes():
+        return False
+    if stats["singleton_ratio"] >= 0.8:
+        return False
+    return True
+
+
+def compute_dynamic_leiden(graph: nx.Graph, args, weighted=True):
+    candidates = parse_dynamic_cluster_sizes(args.dynamic_cluster_sizes)
+    best_mapping = None
+    best_score = None
+    best_stats = None
+    best_size = None
+
+    for max_cluster_size in candidates:
+        c_n_mapping, node_cluster = _final_leiden_mapping(
+            graph,
+            max_cluster_size=max_cluster_size,
+            seed=args.seed,
+            weighted=weighted,
+        )
+        score, stats = _score_partition(
+            graph,
+            c_n_mapping,
+            node_cluster,
+            target_size=max_cluster_size,
+            weighted=weighted,
+        )
+        print(
+            "Dynamic Leiden candidate: "
+            f"max_cluster_size={max_cluster_size}, "
+            f"score={score:.4f}, "
+            f"stats={stats}"
+        )
+        if not np.isfinite(score):
+            print(
+                "Dynamic Leiden candidate rejected: "
+                f"max_cluster_size={max_cluster_size}, reason=non_finite_score"
+            )
+            continue
+        if not _is_effective_partition(graph, c_n_mapping, stats):
+            print(
+                "Dynamic Leiden candidate rejected: "
+                f"max_cluster_size={max_cluster_size}, reason=ineffective_partition"
+            )
+            continue
+        if best_score is None or score > best_score:
+            best_mapping = c_n_mapping
+            best_score = score
+            best_stats = stats
+            best_size = max_cluster_size
+
+    if best_mapping is None:
+        print("Dynamic Leiden selected: none, reason=no_effective_partition")
+        return None
+
+    print(
+        "Dynamic Leiden selected: "
+        f"max_cluster_size={best_size}, "
+        f"score={best_score:.4f}, "
+        f"stats={best_stats}"
+    )
+    return best_mapping
+
+
 def spectralClustering(graph: nx.graph, seed, l, is_weighted):
     c_n_mapping: dict[str, list[int]] = {}
     # 转换成sklearn中SpectralClustering的输入格式
@@ -487,7 +669,15 @@ def attr_cluster(
         print(f"Start clustering for level {level}")
 
         # 1. augment graph and compute weight
-        if args.augment_graph is True:
+        if args.cluster_method == "mutual_knn_leiden":
+            cos_graph = compute_mutual_knn_graph(
+                graph,
+                top_k=args.mutual_knn_k,
+                min_sim=args.mutual_knn_min_sim,
+                original_edge_weight=args.mutual_knn_original_edge_weight,
+            )
+        elif args.augment_graph is True:
+            # 计算余弦距离图
             cos_graph = compute_distance(
                 graph,
                 x_percentile=args.wx_weight,
@@ -498,7 +688,12 @@ def attr_cluster(
             cos_graph = graph
 
         # 2. clustering
-        if args.augment_graph is True:
+        if args.cluster_method == "mutual_knn_leiden":
+            c_n_mapping = compute_dynamic_leiden(cos_graph, args, weighted=True)
+            if not c_n_mapping:
+                print("No effective community partition found. Stop clustering.")
+                break
+        elif args.augment_graph is True:
             if args.cluster_method == "weighted_leiden":
                 c_n_mapping = compute_leiden_max_size(
                     cos_graph, args.max_cluster_size, args.seed

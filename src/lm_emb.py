@@ -256,8 +256,9 @@ def openai_embedding(input_text, api_key, api_base, engine="text-embedding-ada-0
         return embedding
 
     except Exception as e:
-        print(f"Failed to generate embedding: {e}")
-        return None
+        raise RuntimeError(
+            f"Failed to generate embedding with model={engine}, api_base={api_base}: {e}"
+        ) from e
 
 
 load_model = {

@@ -1,6 +1,7 @@
 import json
 import multiprocessing as mp
 import os
+import numpy as np
 from functools import partial
 from concurrent.futures import ThreadPoolExecutor
 
@@ -189,6 +190,30 @@ def report_embedding(community_report, community_text, args):
     return community_report
 
 
+def _validate_report_embeddings(embeddings, expected_dim=1024):
+    invalid_items = []
+    for idx, embedding in enumerate(embeddings):
+        try:
+            embedding_array = np.asarray(embedding, dtype=float)
+        except (TypeError, ValueError):
+            invalid_items.append((idx, type(embedding).__name__))
+            continue
+
+        if (
+            embedding_array.ndim != 1
+            or embedding_array.shape[0] != expected_dim
+            or not np.isfinite(embedding_array).all()
+        ):
+            invalid_items.append((idx, embedding_array.shape))
+
+    if invalid_items:
+        preview = invalid_items[:5]
+        raise ValueError(
+            f"Invalid community report embeddings: expected {expected_dim}-dim finite vectors, "
+            f"got {len(invalid_items)} invalid rows, examples={preview}"
+        )
+
+
 def reprot_embedding_batch(community_df, args, num_workers=32):
     def embedding_context(row):
         if row["summary"] is None:
@@ -230,6 +255,8 @@ def reprot_embedding_batch(community_df, args, num_workers=32):
                     leave=True,
                 )
             )
+
+        _validate_report_embeddings(embeddings)
 
         # 将结果添加回 DataFrame
         community_df["embedding"] = embeddings

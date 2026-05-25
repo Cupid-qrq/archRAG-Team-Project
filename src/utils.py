@@ -173,6 +173,108 @@ def build_faiss_hnsw_index(graph, embedding_dim):
     return hnsw_index, node_list
 
 
+def parse_dynamic_cluster_sizes(value) -> list[int]:
+    if isinstance(value, (list, tuple)):
+        sizes = [int(item) for item in value]
+    else:
+        sizes = [int(item.strip()) for item in str(value).split(",") if item.strip()]
+    sizes = sorted({size for size in sizes if size > 1})
+    if not sizes:
+        raise ValueError("dynamic_cluster_sizes must contain at least one integer > 1")
+    return sizes
+
+
+def _normalized_node_embeddings(graph):
+    node_list = list(graph.nodes())
+    if not node_list:
+        return node_list, np.empty((0, 0), dtype=np.float32)
+
+    embeddings = []
+    for node in node_list:
+        embedding = np.array(graph.nodes[node]["embedding"], dtype=np.float32)
+        embeddings.append(embedding)
+
+    embedding_matrix = np.vstack(embeddings).astype(np.float32)
+    norms = np.linalg.norm(embedding_matrix, axis=1, keepdims=True)
+    norms[norms == 0] = 1.0
+    embedding_matrix = embedding_matrix / norms
+    return node_list, embedding_matrix
+
+
+def compute_mutual_knn_graph(
+    graph,
+    top_k=8,
+    min_sim=0.0,
+    original_edge_weight=0.05,
+):
+    res_graph = nx.Graph()
+    res_graph.add_nodes_from(graph.nodes(data=True))
+
+    node_list, embedding_matrix = _normalized_node_embeddings(graph)
+    node_count = len(node_list)
+    if node_count <= 1:
+        return res_graph
+
+    node_to_idx = {node: idx for idx, node in enumerate(node_list)}
+    top_k = max(1, min(int(top_k), node_count - 1))
+    search_k = min(node_count, top_k + 1)
+    index = faiss.IndexFlatIP(embedding_matrix.shape[1])
+    index.add(embedding_matrix)
+    similarities, indices = index.search(embedding_matrix, search_k)
+
+    neighbor_sets = {}
+    for row_idx, node in enumerate(node_list):
+        current_neighbors = set()
+        for sim, neighbor_idx in zip(similarities[row_idx], indices[row_idx]):
+            if neighbor_idx < 0 or neighbor_idx == row_idx:
+                continue
+            if sim < min_sim:
+                continue
+            neighbor = node_list[neighbor_idx]
+            current_neighbors.add(neighbor)
+        neighbor_sets[node] = current_neighbors
+
+    original_edges = 0
+    downweighted_edges = 0
+    for u, v in graph.edges():
+        u_idx = node_to_idx[u]
+        v_idx = node_to_idx[v]
+        sim = float(np.dot(embedding_matrix[u_idx], embedding_matrix[v_idx]))
+        weight = sim
+        if sim < min_sim:
+            weight = float(original_edge_weight)
+            downweighted_edges += 1
+        res_graph.add_edge(u, v, weight=weight, edge_type="original")
+        original_edges += 1
+
+    mutual_edges = 0
+    for u in node_list:
+        for v in neighbor_sets[u]:
+            if u not in neighbor_sets.get(v, set()):
+                continue
+            u_idx = node_to_idx[u]
+            v_idx = node_to_idx[v]
+            sim = float(np.dot(embedding_matrix[u_idx], embedding_matrix[v_idx]))
+            if res_graph.has_edge(u, v):
+                if sim > res_graph[u][v].get("weight", 0):
+                    res_graph[u][v]["weight"] = sim
+                    res_graph[u][v]["edge_type"] = "original_mutual_knn"
+                continue
+            res_graph.add_edge(u, v, weight=sim, edge_type="mutual_knn")
+            mutual_edges += 1
+
+    print(
+        "Mutual KNN graph: "
+        f"nodes={res_graph.number_of_nodes()}, "
+        f"original_edges={original_edges}, "
+        f"downweighted_original_edges={downweighted_edges}, "
+        f"new_mutual_edges={mutual_edges}, "
+        f"total_edges={res_graph.number_of_edges()}, "
+        f"top_k={top_k}, min_sim={min_sim}"
+    )
+    return res_graph
+
+
 def compute_new_edges_batch(
     node_batch, hnsw_index, node_list, graph, wx, m_du, search_nodes
 ):
@@ -625,6 +727,34 @@ def create_arg_parser():
         type=str,
         default="weighted_leiden",
         help="Set the clustering method for attribute clustering",
+    )
+
+    parser.add_argument(
+        "--mutual_knn_k",
+        type=int,
+        default=8,
+        help="Top-k neighbors used by mutual_knn_leiden graph construction",
+    )
+
+    parser.add_argument(
+        "--mutual_knn_min_sim",
+        type=float,
+        default=0.0,
+        help="Minimum cosine similarity for mutual KNN semantic edges",
+    )
+
+    parser.add_argument(
+        "--mutual_knn_original_edge_weight",
+        type=float,
+        default=0.05,
+        help="Fallback weight for original KG edges below mutual_knn_min_sim",
+    )
+
+    parser.add_argument(
+        "--dynamic_cluster_sizes",
+        type=str,
+        default="8,12,16,24,32",
+        help="Comma-separated max_cluster_size candidates for dynamic Leiden",
     )
 
     parser.add_argument(
