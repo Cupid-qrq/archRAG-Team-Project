@@ -2,9 +2,9 @@
 
 eval_mode="DocQA"
 
-api_key="" #TODO
-api_base="" #TODO
-engine="gpt-5.5" # llm engine
+api_key="" #TODO: 填入你的 API Key
+api_base="https://api.deepseek.com"
+engine="deepseek-v4-pro" # llm engine
 
 output_dir="archrag_index" # output index path
 base_path="archrag" # input dataset path 
@@ -14,9 +14,9 @@ entity_filename="create_final_entities.parquet"
 
 dataset_name="demo"
 dataset_path="qa.jsonl"
-embedding_model=""
-embedding_api_key="dummy"
-embedding_api_base=""
+embedding_model="nomic-embed-text"
+embedding_api_key="ollama"
+embedding_api_base="http://localhost:11434/v1"
 
 strategy="global"
 k_each_level=5
@@ -40,6 +40,8 @@ python_file="src/evaluate/test_qa.py"
 
 log_file="eval.log"
 
+export PYTHONPATH="$(pwd):${PYTHONPATH:-}"
+
 nohup python -u $python_file --strategy $strategy --k_each_level $k_each_level \
     --k_final $k_final --all_k_inference $all_k_inference --topk_e $topk_e \
     --generate_strategy $generate_strategy --response_type $response_type \
@@ -49,7 +51,7 @@ nohup python -u $python_file --strategy $strategy --k_each_level $k_each_level \
     --only_entity $only_entity --ppr_refine $ppr_refine \
     --involve_llm_res $involve_llm_res --topk_chunk $topk_chunk  \
     --embedding_model $embedding_model --embedding_api_key $embedding_api_key --embedding_api_base $embedding_api_base \
-    --engine $engine --num_workers $num_workers \
+    --engine $engine --num_workers $num_workers --max_tokens 8000 \
     --api_key $api_key --api_base $api_base --all_k_adaptive 50 --use_hypernode true --hypernode_max_hops 2 \
     --hypernode_topk_seeds 10 --use_path_consensus true --ppr_merge true --disable_wandb true \
     >$log_file 2>&1 &

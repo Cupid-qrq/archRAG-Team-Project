@@ -590,6 +590,61 @@ def reconstruct_graph(community_df, final_relationships):
     return graph, community_df
 
 
+def check_convergence(c_n_mapping, prev_c_n_mapping, graph) -> bool:
+    """Check if clustering has converged compared to previous level.
+
+    Uses Adjusted Rand Index (ARI) via label agreement to measure
+    similarity between current and previous clustering results.
+    Returns True if the cluster structure is nearly identical.
+    """
+    if prev_c_n_mapping is None:
+        return False
+
+    # Convert both mappings to sets of node-set tuples for comparison
+    prev_clusters = {tuple(sorted(nodes)) for nodes in prev_c_n_mapping.values()}
+    curr_clusters = {tuple(sorted(nodes)) for nodes in c_n_mapping.values()}
+
+    # Calculate overlap ratio
+    if len(prev_clusters) == len(curr_clusters):
+        # Same number of clusters — check for near-identical membership
+        total_overlap = 0
+        for pc in prev_clusters:
+            pc_set = set(pc)
+            max_overlap = max(
+                len(pc_set & set(cc)) / len(pc_set | set(cc))
+                for cc in curr_clusters
+            )
+            total_overlap += max_overlap
+        avg_jaccard = total_overlap / len(prev_clusters) if prev_clusters else 0
+        if avg_jaccard > 0.85:
+            return True
+
+    return False
+
+
+def filter_low_quality_communities(
+    community_df: pd.DataFrame, min_rating: float = 2.0
+) -> pd.DataFrame:
+    """Filter out communities whose LLM-assigned rating is below threshold.
+
+    Low-rated communities have poor semantic coherence and should not
+    be used to construct the next level's graph.
+    """
+    if "rating" not in community_df.columns or len(community_df) == 0:
+        return community_df
+
+    before = len(community_df)
+    filtered = community_df[community_df["rating"] >= min_rating].copy()
+    after = len(filtered)
+
+    if after < before:
+        print(
+            f"[Quality Filter] Removed {before - after}/{before} communities "
+            f"with rating < {min_rating}"
+        )
+    return filtered
+
+
 def attr_cluster(
     init_graph: nx.Graph,
     final_entities,
@@ -597,11 +652,19 @@ def attr_cluster(
     args,
     max_level=4,
     min_clusters=5,
+    triple_text_mapping=None,
+    chunk_weights=None,
 ):
     level = 1
     graph = init_graph
     community_df = pd.DataFrame()
     all_token = 0
+    prev_c_n_mapping = None  # for convergence detection
+    level_quality_log = []  # track quality metrics per level
+
+    smart_stop = getattr(args, "smart_stop", True)
+    quality_threshold = getattr(args, "quality_threshold", 2.5)
+
     while level <= max_level:
         print(f"Start clustering for level {level}")
 
@@ -651,15 +714,58 @@ def attr_cluster(
                     cos_graph, args.seed, num_c, False
                 )
 
-        # # 使用 Leiden 算法进行聚类
-        # if args.max_cluster_size != 0:
-
-        # else:
-        #     c_n_mapping = compute_leiden(cos_graph, args.seed)
-
-        # check for finish
         number_of_clusters = len(c_n_mapping)
+
+        # ---- Smart Stop Condition 1: Convergence Detection ----
+        if smart_stop and prev_c_n_mapping is not None and level > 1:
+            converged = check_convergence(c_n_mapping, prev_c_n_mapping, graph)
+            if converged:
+                print(
+                    f"[Smart Stop] Clustering converged at level {level} "
+                    f"(cluster structure similar to level {level - 1})"
+                )
+                break
+
+        # ---- Smart Stop Condition 2: min_clusters with report generation ----
         if number_of_clusters < min_clusters:
+            # Generate reports for remaining communities before stopping
+            if level > 1:
+                updated_c_n_mapping, c_c_mapping = community_id_node_resize(
+                    c_n_mapping=c_n_mapping, community_df=community_df
+                )
+            else:
+                updated_c_n_mapping = c_n_mapping
+                c_c_mapping = {}
+
+            print(
+                f"[Smart Stop] Only {number_of_clusters} communities (< {min_clusters}) "
+                f"at level {level}. Generating final reports before stopping."
+            )
+            level_dict = {
+                community_id: level for community_id in updated_c_n_mapping.keys()
+            }
+            tmp_final = os.path.join(args.output_dir, f"tmp_community_df_{level}.csv")
+            if not os.path.exists(tmp_final):
+                tmp_error = os.path.join(
+                    args.output_dir, f"tmp_community_df_{level}_error.csv"
+                )
+                new_community_df, cur_token = community_report_batch(
+                    communities=updated_c_n_mapping,
+                    c_c_mapping=c_c_mapping,
+                    final_entities=final_entities,
+                    final_relationships=final_relationships,
+                    exist_community_df=community_df,
+                    level_dict=level_dict,
+                    error_save_path=tmp_error,
+                    args=args,
+                    triple_text_mapping=triple_text_mapping or {},
+                    chunk_weights=chunk_weights or {},
+                )
+                all_token += cur_token
+                new_community_df.to_csv(tmp_final, index=False)
+                community_df = pd.concat(
+                    [community_df, new_community_df], ignore_index=True
+                )
             break
 
         # 如果不是第一层，需要调整 community_id
@@ -710,17 +816,67 @@ def attr_cluster(
                 level_dict=level_dict,
                 error_save_path=tmp_comunity_df_error,
                 args=args,
+                triple_text_mapping=triple_text_mapping or {},
+                chunk_weights=chunk_weights or {},
             )
             all_token += cur_token
             print(f"cur token usage for current level: {cur_token}")
 
+        # ---- Quality Metrics Tracking ----
+        if "rating" in new_community_df.columns:
+            ratings = new_community_df["rating"].dropna()
+            if len(ratings) > 0:
+                avg_rating = float(ratings.mean())
+                level_quality_log.append(
+                    {
+                        "level": level,
+                        "n_communities": len(new_community_df),
+                        "avg_rating": round(avg_rating, 2),
+                        "min_rating": round(float(ratings.min()), 2),
+                        "max_rating": round(float(ratings.max()), 2),
+                    }
+                )
+                print(
+                    f"[Quality] Level {level}: avg_rating={avg_rating:.2f}, "
+                    f"n_communities={len(new_community_df)}"
+                )
+
+                # ---- Smart Stop Condition 3: Quality Threshold ----
+                if smart_stop and level > 1 and avg_rating < quality_threshold:
+                    print(
+                        f"[Smart Stop] Average community rating {avg_rating:.2f} "
+                        f"below threshold {quality_threshold} at level {level}. Stopping."
+                    )
+                    break
+
+        # ---- Quality-based Filtering ----
+        if getattr(args, "quality_filter", False) and "rating" in new_community_df.columns:
+            pre_filter = len(new_community_df)
+            new_community_df = filter_low_quality_communities(
+                new_community_df, min_rating=getattr(args, "min_community_rating", 2.0)
+            )
+            if len(new_community_df) < pre_filter:
+                print(
+                    f"[Quality Filter] Filtered out "
+                    f"{pre_filter - len(new_community_df)} low-quality communities"
+                )
+
         # update
+        prev_c_n_mapping = c_n_mapping
         graph, new_community_df = reconstruct_graph(
             new_community_df, final_relationships
         )
         new_community_df.to_csv(tmp_comunity_df_result, index=False)
         community_df = pd.concat([community_df, new_community_df], ignore_index=True)
         level += 1
+
+    # ---- Final Quality Summary ----
+    if level_quality_log:
+        quality_df = pd.DataFrame(level_quality_log)
+        quality_path = os.path.join(args.output_dir, "level_quality_log.csv")
+        quality_df.to_csv(quality_path, index=False)
+        print(f"[Quality] Level quality log saved to {quality_path}")
+        print(quality_df.to_string(index=False))
 
     return community_df, all_token
 

@@ -58,3 +58,6 @@ faiss/python/swigfaiss_sve.swig
 .env
 corpus/cache/
 corpus/output/
+archrag_index/
+eval.log
+index_build.log

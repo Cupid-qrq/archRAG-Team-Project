@@ -10,6 +10,10 @@ from src.prompts import COMMUNITY_REPORT_PROMPT, COMMUNITY_CONTEXT
 from src.utils import *
 from src.lm_emb import *
 from src.client_reasoning import prep_e_r_content, prep_community_content
+from src.triple_text_mapping import (
+    make_extractive_community_report,
+    select_source_items_for_nodes,
+)
 
 
 def prep_community_report_content(
@@ -96,8 +100,42 @@ def dict_has_keys_with_types(d, keys_with_types):
     return True
 
 
+def get_adaptive_report_prompt(community_text: str, node_count: int = 0) -> str:
+    """Generate a community report prompt with findings count adapted to community size.
+
+    Small communities (2-3 nodes) get 2-3 findings. Large ones (10+) get the
+    full 5-10 range. This prevents hallucinations from over-requesting details.
+    """
+    # Estimate node count from "Entities" table if not provided
+    if node_count <= 0:
+        # Count lines in the entities section
+        entity_section_start = community_text.find("Entities")
+        if entity_section_start >= 0:
+            entity_lines = community_text[entity_section_start:].strip().split("\n")
+            node_count = max(1, len(entity_lines) - 2)  # -2 for header row
+
+    if node_count <= 3:
+        findings_range = "2-3"
+    elif node_count <= 8:
+        findings_range = "3-5"
+    else:
+        findings_range = "5-10"
+
+    # Replace findings count in the prompt
+    import re
+    prompt = COMMUNITY_REPORT_PROMPT.format(input_text=community_text)
+    prompt = re.sub(
+        r"include\s+(?:5-10|3-5|2-3)\s+key\s+findings",
+        f"include {findings_range} key findings",
+        prompt,
+        flags=re.IGNORECASE,
+    )
+    return prompt
+
+
 def generate_community_report(community_text, args, community_id, max_generate=3):
-    report_prompt = COMMUNITY_REPORT_PROMPT.format(input_text=community_text)
+    node_count = getattr(args, "community_node_count", 0)
+    report_prompt = get_adaptive_report_prompt(community_text, node_count=node_count)
     retries = 0
     success = False
     raw_result = None
@@ -238,6 +276,8 @@ def community_report_worker(
     exist_community_df,
     args,
     level_dict,
+    triple_text_mapping,
+    chunk_weights,
 ):
 
     # 处理单个社区的函数
@@ -248,6 +288,7 @@ def community_report_worker(
 
     community_relationships = final_relationships[
         final_relationships["head_id"].isin(node_list)
+        | final_relationships["tail_id"].isin(node_list)
     ]
 
     if len(c_c_mapping) > 0:
@@ -259,6 +300,16 @@ def community_report_worker(
         sub_communities_df = pd.DataFrame()
 
     community_level = level_dict.get(community_id, 0)
+    source_text_max_tokens = args.source_text_max_tokens or args.max_tokens
+    source_items = []
+    if args.enable_triple_text_mapping and triple_text_mapping:
+        source_items = select_source_items_for_nodes(
+            node_list,
+            triple_text_mapping,
+            chunk_weights,
+            top_k=args.source_text_top_k,
+            max_tokens=source_text_max_tokens,
+        )
 
     community_text = prep_community_report_content(
         community_level,
@@ -268,9 +319,36 @@ def community_report_worker(
         max_tokens=args.max_tokens,
     )
 
-    raw_result, community_report, all_tokens = generate_community_report(
-        community_text, args, community_id
+    report_mode = getattr(args, "community_report_mode", "hybrid")
+    should_use_extractive = (
+        report_mode == "extractive"
+        or (
+            report_mode == "hybrid"
+            and len(community_relationships) >= args.extractive_large_community_threshold
+        )
     )
+
+    if should_use_extractive and source_items:
+        community_report, community_text = make_extractive_community_report(
+            community_id,
+            community_level,
+            node_list,
+            source_items,
+        )
+        raw_result = None
+        all_tokens = 0
+    else:
+        raw_result, community_report, all_tokens = generate_community_report(
+            community_text, args, community_id
+        )
+        community_report["source_type"] = "llm_report"
+        community_report["source_texts"] = [item["text"] for item in source_items]
+        community_report["source_text_unit_ids"] = [
+            item["text_unit_id"] for item in source_items
+        ]
+        community_report["source_relationship_ids"] = [
+            item["relationship_id"] for item in source_items
+        ]
 
     community_report["community_id"] = community_id
     community_report["level"] = level_dict.get(
@@ -295,6 +373,8 @@ def community_report_batch(
     args,
     error_save_path,
     level_dict: dict[str, int],
+    triple_text_mapping=None,
+    chunk_weights=None,
 ):
     results_community = []
     total_tokens = 0
@@ -311,6 +391,8 @@ def community_report_batch(
             exist_community_df=exist_community_df,
             args=args,
             level_dict=level_dict,
+            triple_text_mapping=triple_text_mapping or {},
+            chunk_weights=chunk_weights or {},
         )
 
         # 并行处理每个社区
@@ -328,6 +410,9 @@ def community_report_batch(
             raise  # 重新抛出异常以终止处理
 
     community_df = pd.DataFrame(results_community)
+    if "source_type" in community_df.columns:
+        source_counts = community_df["source_type"].fillna("unknown").value_counts()
+        print(f"Community report source types: {source_counts.to_dict()}")
     community_df = reprot_embedding_batch(
         community_df, args, num_workers=args.embedding_num_workers
     )

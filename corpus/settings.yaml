@@ -4,11 +4,11 @@ skip_workflows: [create_final_community_reports,create_summarized_entities,join_
 llm:
   api_key: "" # TODO: 本地部署填 "ollama"，云端填真实 key
   type: openai_chat # or azure_openai_chat
-  model: gpt-5.5
-  model_supports_json: true # recommended if this is available for your model.
-  max_tokens: 2000
+  model: deepseek-v4-pro
+  model_supports_json: false # recommended if this is available for your model.
+  max_tokens: 8000
   # request_timeout: 180.0
-  api_base:  #TODO
+  api_base: "https://api.deepseek.com" #TODO
   # api_version: 2024-02-15-preview
   # organization: <organization_id>
   # deployment_name: <azure_model_deployment_name>
@@ -32,10 +32,10 @@ embeddings:
   ## parallelization: override the global parallelization settings for embeddings
   async_mode: threaded # or asyncio
   llm:
-    api_key: "" # TODO: 本地部署填 "ollama"，云端填真实 key
+    api_key: "ollama" # TODO: 本地部署填 "ollama"，云端填真实 key
     type: openai_embedding # or azure_openai_embedding
-    model: #TODO
-    api_base: #TODO
+    model: nomic-embed-text
+    api_base: "http://localhost:11434/v1"
     # api_version: 2024-02-15-preview
     # organization: <organization_id>
     # deployment_name: <azure_model_deployment_name>
@@ -87,7 +87,10 @@ entity_extraction:
   ## async_mode: override the global async_mode settings for this task
   prompt: "prompts/entity_extraction.txt"
   entity_types: [organization,person,geo,event]
-  max_gleanings: 1
+  max_gleanings: 0
+  llm:
+    model_supports_json: false
+
 
 summarize_descriptions:
   ## llm: override the global llm settings for this task

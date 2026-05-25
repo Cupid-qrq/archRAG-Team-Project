@@ -92,7 +92,7 @@ def read_graph_nx(
     # for _, row in tqdm(relationships.iterrows(), total=relationships.shape[0]):
     for _, row in relationships.iterrows():
         # graph.add_edge(row["source"], row["target"], weight=row["weight"])
-        if add_weight in row:
+        if add_weight:
             graph.add_edge(row["head_id"], row["tail_id"], weight=row["weight"])
         else:
             graph.add_edge(row["head_id"], row["tail_id"])
@@ -650,6 +650,13 @@ def create_arg_parser():
     )
 
     parser.add_argument(
+        "--text_unit_filename",
+        type=str,
+        default="create_final_text_units.parquet",
+        help="Filename for the text-unit data used by triple-text mapping.",
+    )
+
+    parser.add_argument(
         "--output_dir",
         type=str,
         # required=True,
@@ -748,6 +755,68 @@ def create_arg_parser():
         type=str,
         default="8,12,16,24,32",
         help="Comma-separated max_cluster_size candidates for dynamic Leiden",
+    )
+
+    parser.add_argument(
+        "--enable_triple_text_mapping",
+        type=lambda x: x.lower() == "true",
+        default=True,
+        help="Whether to build relationship-to-source-text evidence mappings.",
+    )
+
+    parser.add_argument(
+        "--community_report_mode",
+        type=str,
+        choices=["hybrid", "llm", "extractive"],
+        default="hybrid",
+        help="Community report generation mode.",
+    )
+
+    parser.add_argument(
+        "--extractive_large_community_threshold",
+        type=int,
+        default=5,
+        help="Minimum number of community relationships for extractive reports in hybrid mode.",
+    )
+
+    parser.add_argument(
+        "--source_text_top_k",
+        type=int,
+        default=3,
+        help="Number of source text units to attach to each community or relationship.",
+    )
+
+    parser.add_argument(
+        "--source_text_max_tokens",
+        type=int,
+        default=0,
+        help="Maximum source text tokens; 0 means use max_tokens.",
+    )
+
+    # ---- Smart Stop & Quality Gating Parameters ----
+    parser.add_argument(
+        "--smart_stop",
+        type=lambda x: x.lower() == "true",
+        default=True,
+        help="Enable smart stop conditions (convergence, quality threshold) for iterative clustering.",
+    )
+    parser.add_argument(
+        "--quality_threshold",
+        type=float,
+        default=2.5,
+        help="Stop clustering if average community rating falls below this threshold.",
+    )
+    parser.add_argument(
+        "--quality_filter",
+        type=lambda x: x.lower() == "true",
+        default=False,
+        help="Filter out low-quality communities before building the next level graph.",
+    )
+    parser.add_argument(
+        "--min_community_rating",
+        type=float,
+        default=2.0,
+        help="Minimum LLM rating for a community to be kept when quality_filter is enabled.",
     )
 
     # add LLM parameters
@@ -902,6 +971,13 @@ def create_inference_arg_parser():
         type=str,
         default="create_final_entities.parquet",
         help="Filename for the entity data.",
+    )
+
+    parser.add_argument(
+        "--text_unit_filename",
+        type=str,
+        default="create_final_text_units.parquet",
+        help="Filename for the text-unit data used by triple-text mapping.",
     )
 
     parser.add_argument(
@@ -1117,6 +1193,27 @@ def create_inference_arg_parser():
     parser.add_argument("--ppr_merge",
                         type=lambda x: x.lower() == "true", default=False,
                         help="PPR 与 HCHNSW 融合（默认替换）")
+
+    parser.add_argument(
+        "--enable_triple_text_mapping",
+        type=lambda x: x.lower() == "true",
+        default=True,
+        help="Whether to load relationship-to-source-text evidence mappings.",
+    )
+
+    parser.add_argument(
+        "--source_text_top_k",
+        type=int,
+        default=3,
+        help="Number of source text units to attach to retrieved communities or relationships.",
+    )
+
+    parser.add_argument(
+        "--source_text_max_tokens",
+        type=int,
+        default=0,
+        help="Maximum source text tokens; 0 means use max_tokens.",
+    )
 
     parser.add_argument(
         "--only_entity",

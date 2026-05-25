@@ -7,6 +7,7 @@ target_dir="${2:-archrag}"
 required_files=(
   "create_final_entities.parquet"
   "create_final_relationships.parquet"
+  "create_final_text_units.parquet"
 )
 
 if [[ ! -d "$output_root" ]]; then
