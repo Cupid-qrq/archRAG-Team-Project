@@ -82,7 +82,7 @@ def create_hchnsw_index(community_df, entity_df, save_path):
     print(dim, ML, M, 1, vector_size)
 
     index = faiss.IndexHCHNSWFlat(dim, ML, M, 1, vector_size)
-    index.set_vector_level(levels)
+    index.set_vector_level(vector_size, faiss.swig_ptr(levels.astype(np.int64)))
     index.hchnsw.efSearch = efSearch
     index.hchnsw.efConstruction = efConstruction
 
