@@ -99,8 +99,42 @@ def dict_has_keys_with_types(d, keys_with_types):
     return True
 
 
+def get_adaptive_report_prompt(community_text: str, node_count: int = 0) -> str:
+    """Generate a community report prompt with findings count adapted to community size.
+
+    Small communities (2-3 nodes) get 2-3 findings. Large ones (10+) get the
+    full 5-10 range. This prevents hallucinations from over-requesting details.
+    """
+    # Estimate node count from "Entities" table if not provided
+    if node_count <= 0:
+        # Count lines in the entities section
+        entity_section_start = community_text.find("Entities")
+        if entity_section_start >= 0:
+            entity_lines = community_text[entity_section_start:].strip().split("\n")
+            node_count = max(1, len(entity_lines) - 2)  # -2 for header row
+
+    if node_count <= 3:
+        findings_range = "2-3"
+    elif node_count <= 8:
+        findings_range = "3-5"
+    else:
+        findings_range = "5-10"
+
+    # Replace findings count in the prompt
+    import re
+    prompt = COMMUNITY_REPORT_PROMPT.format(input_text=community_text)
+    prompt = re.sub(
+        r"include\s+(?:5-10|3-5|2-3)\s+key\s+findings",
+        f"include {findings_range} key findings",
+        prompt,
+        flags=re.IGNORECASE,
+    )
+    return prompt
+
+
 def generate_community_report(community_text, args, community_id, max_generate=3):
-    report_prompt = COMMUNITY_REPORT_PROMPT.format(input_text=community_text)
+    node_count = getattr(args, "community_node_count", 0)
+    report_prompt = get_adaptive_report_prompt(community_text, node_count=node_count)
     retries = 0
     success = False
     raw_result = None
