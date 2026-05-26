@@ -1,0 +1,95 @@
+Parsed Arguments:
+project: hcarag
+base_path: archrag
+relationship_filename: create_final_relationships.parquet
+entity_filename: create_final_entities.parquet
+text_unit_filename: create_final_text_units.parquet
+output_dir: archrag_index
+wx_weight: 0.8
+search_k: 1.5
+m_du_scale: 1.0
+seed: 3735928559
+max_level: 6
+min_clusters: 5
+max_cluster_size: 15
+augment_graph: True
+cluster_method: weighted_leiden
+mutual_knn_k: 8
+mutual_knn_min_sim: 0.0
+mutual_knn_original_edge_weight: 0.05
+dynamic_cluster_sizes: 8,12,16,24,32
+enable_triple_text_mapping: True
+community_report_mode: hybrid
+extractive_large_community_threshold: 5
+source_text_top_k: 3
+source_text_max_tokens: 0
+smart_stop: True
+quality_threshold: 2.5
+quality_filter: False
+min_community_rating: 2.0
+api_key: ***
+api_base: https://open.bigmodel.cn/api/paas/v4
+engine: glm-5.1
+max_tokens: 4000
+temperature: 0.1
+max_community_tokens: 4000
+max_retries: 5
+embedding_local: False
+embedding_model_local: nomic-embed-text-v1
+embedding_model: embedding-3
+embedding_api_key: ***
+embedding_api_base: https://open.bigmodel.cn/api/paas/v4
+embedding_num_workers: 32
+entity_second_embedding: True
+num_workers: 10
+print_log: True
+debug_flag: False
+Number of entities: 33
+Number of nodes: 33
+Number of edges: 72
+Built triple-text mapping: 72/72 relationships mapped to source text.
+local is False
+Computing embeddings:   0%|          | 0/33 [00:00<?, ?it/s]Computing embeddings:   3%|▎         | 1/33 [00:00<00:08,  3.56it/s]Computing embeddings:  15%|█▌        | 5/33 [00:00<00:02, 13.70it/s]Computing embeddings: 100%|██████████| 33/33 [00:00<00:00, 89.44it/s]Computing embeddings: 100%|██████████| 33/33 [00:00<00:00, 61.39it/s]
+entity embedding sample shape: (2048,)
+Finished reading graph in 0.70 seconds ()
+Start clustering for level 1
+Adding up to 4 edges to each node, searching 7 nodes
+Original edges count: 72, New edges added: 58, Total edges in final graph: 130
+Initial number of isolated nodes: 0, Final number of isolated nodes: 0
+Number of communities: 6
+Community id list: ['0', '1', '2', '3', '4', '5']
+File archrag_index/tmp_community_df_1.csv already exists. Loading existing data.
+[Quality] Level 1: avg_rating=4.20, n_communities=5
+No NaN edges detected.
+No NaN nodes detected.
+Start clustering for level 2
+Adding up to 2 edges to each node, searching 4 nodes
+Original edges count: 5, New edges added: 0, Total edges in final graph: 5
+Initial number of isolated nodes: 0, Final number of isolated nodes: 0
+[Smart Stop] Only 1 communities (< 5) at level 2. Generating final reports before stopping.
+[Quality] Level quality log saved to archrag_index/level_quality_log.csv
+ level  n_communities  avg_rating  min_rating  max_rating
+     1              5         4.2         2.0         5.0
+Token usage for clustering: 0
+finish compute hierarchical clusters
+Finished computing hierarchical clusters in 0.77 seconds ()
+Need to compute entity embedding
+column name :embedding existing
+local is False
+the number of unique description is 58
+Computing embeddings:   0%|          | 0/58 [00:00<?, ?it/s]Computing embeddings:   2%|▏         | 1/58 [00:00<00:36,  1.55it/s]Computing embeddings:  57%|█████▋    | 33/58 [00:00<00:00, 47.85it/s]Computing embeddings:  90%|████████▉ | 52/58 [00:00<00:00, 71.67it/s]Computing embeddings: 100%|██████████| 58/58 [00:00<00:00, 58.66it/s]
+level
+1    5
+Name: count, dtype: int64
+2048 1 32 1 38
+Index saved to archrag_index/hchnsw.index
+finish compute HC HNSW
+The maximum level is: 1
+Finished making level summary in 21.60 seconds ()
+finish make level summary
+Token usage for level summary: 3718
+finish save community_df and entity_df
+finish save relationship_df
+finish compute HCa RAG index
+Finished computing HCa RAG index in 21.68 seconds ()
+Create Index Total Token Usage: 3718

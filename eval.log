@@ -1,0 +1,103 @@
+Parsed Arguments:
+project: hcarag
+base_path: archrag
+relationship_filename: create_final_relationships.parquet
+entity_filename: create_final_entities.parquet
+text_unit_filename: create_final_text_units.parquet
+output_dir: archrag_index
+dataset_name: demo
+dataset_path: qa.jsonl
+doc_idx: -1
+eval_mode: DocQA
+seed: 3735928559
+api_key: ***
+api_base: https://open.bigmodel.cn/api/paas/v4
+engine: glm-5.1
+max_tokens: 8000
+temperature: 0.1
+max_community_tokens: 4000
+max_retries: 5
+embedding_local: False
+embedding_model_local: nomic-embed-text-v1
+embedding_model: embedding-3
+embedding_api_key: ***
+embedding_api_base: https://open.bigmodel.cn/api/paas/v4
+embedding_num_workers: 48
+entity_second_embedding: True
+num_workers: 10
+strategy: global
+k_each_level: 5
+k_final: 15
+topk_e: 10
+all_k_inference: 15
+all_k_adaptive: 50
+use_llm_level_scoring: False
+use_hypernode: True
+hypernode_max_hops: 2
+hypernode_topk_seeds: 10
+use_path_consensus: True
+ppr_merge: True
+enable_triple_text_mapping: True
+source_text_top_k: 3
+source_text_max_tokens: 0
+only_entity: False
+wo_hierarchical: False
+ppr_refine: False
+involve_llm_res: True
+topk_chunk: 0
+generate_strategy: mr
+response_type: QA
+range_level: 2
+print_log: True
+debug_flag: False
+disable_wandb: True
+level of index: 1
+Loaded triple-text mapping: 72 relationships with source evidence metadata.
+Number of entities: 33
+Number of nodes: 33
+Number of edges: 72
+Index loaded successfully.
+test datasets size:
+(10, 2)
+Save file: archrag_index/qa/global_False_False_5_15_10_15_False_mr_QA_True_0_2_50_False_True_2_10_True_True_newprompt.csv
+Query Parameters:
+strategy: global
+only_entity: False
+wo_hierarchical: False
+k_each_level: 5
+k_final: 15
+topk_e: 10
+all_k_inference: 15
+ppr_refine: False
+generate_strategy: mr
+response_type: QA
+involve_llm_res: True
+topk_chunk: 0
+range_level: 2
+all_k_adaptive: 50
+use_llm_level_scoring: False
+use_hypernode: True
+hypernode_max_hops: 2
+hypernode_topk_seeds: 10
+use_path_consensus: True
+ppr_merge: True
+Number of workers: 10
+Number of questions: 10
+Number of questions per process: 1.0
+Processing question at index 0: Which agencies participate in the Aurora Harbor Resilience Program?
+Finish query Time: 262.52 seconds
+Total token: 154650
+Hit: 60.0000
+Precision: 65.2065
+Recall: 78.8599
+F1: 68.2219
+EM: 40.0000
+Test Hit 60.0
+------------------------------
+Test Raw Result
+Hit: 60.0000
+Precision: 4.9435
+Recall: 81.9849
+F1: 9.0837
+EM: 0.0000
+Test Hit Raw 60.0
