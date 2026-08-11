@@ -174,6 +174,21 @@ def _final_leiden_mapping(
         c_n_mapping[community_id].append(partition.node)
         node_cluster[partition.node] = community_id
 
+    # graspologic 的 hierarchical_leiden 会丢弃孤立节点（不含任何边），导致划分
+    # 不覆盖全图，networkx modularity 抛 NotAPartition。把缺失的孤立节点回填为
+    # 单例社区，保证划分合法（孤立节点本来就是独立社区）。
+    covered = set(node_cluster.keys())
+    missing = set(graph.nodes()) - covered
+    if missing:
+        print(
+            f"[_final_leiden_mapping] Backfilling {len(missing)} isolated nodes "
+            f"as singletons (graspologic dropped them)."
+        )
+        for node in missing:
+            community_id = f"isolated_{node}"
+            c_n_mapping[community_id] = [node]
+            node_cluster[node] = community_id
+
     return c_n_mapping, node_cluster
 
 

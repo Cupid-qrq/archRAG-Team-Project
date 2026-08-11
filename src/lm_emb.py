@@ -1,4 +1,5 @@
 from tqdm import tqdm
+import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -117,7 +118,15 @@ def sber_text2embedding(model, tokenizer, device, text, batch_size=16):
         all_embeddings = torch.cat(all_embeddings, dim=0).cpu()
 
     except:
-        return torch.zeros((0, 1024))
+        # 从模型 config 推导维度，避免硬编码 1024（nomic 是 768）
+        try:
+            if hasattr(model, "bert_model"):
+                emb_dim = model.bert_model.config.hidden_size
+            else:
+                emb_dim = model.config.hidden_size
+        except Exception:
+            emb_dim = 768
+        return torch.zeros((0, emb_dim))
 
     return all_embeddings
 
@@ -183,9 +192,11 @@ def text_to_embedding_batch(
 
     except Exception as e:
         print(f"Error during embedding: {e}")
-        return torch.zeros((0, embedding_dim))
+        return []
 
-    return all_embeddings
+    # 逐条列表（每条一个 768 维 list），与云端 openai_embedding 返回格式一致，
+    # 避免 2D tensor 直接赋 DataFrame 列触发 pandas "Expected a 1D array" 错误。
+    return all_embeddings.tolist()
 
 
 def load_contriever():
@@ -249,7 +260,10 @@ def openai_embedding(input_text, api_key, api_base, engine="text-embedding-ada-0
         client = OpenAI(api_key=api_key, base_url=api_base)
 
         # Request the embedding from the OpenAI API
-        response = client.embeddings.create(input=input_text, model=engine)
+        kwargs = {"input": input_text, "model": engine}
+        if "embedding-3" in engine:
+            kwargs["dimensions"] = 1024
+        response = client.embeddings.create(**kwargs)
 
         # Extract the embedding from the response
         embedding = response.data[0].embedding
@@ -259,6 +273,37 @@ def openai_embedding(input_text, api_key, api_base, engine="text-embedding-ada-0
         raise RuntimeError(
             f"Failed to generate embedding with model={engine}, api_base={api_base}: {e}"
         ) from e
+
+
+# 本地 embedding 模型缓存（进程级：mp.Pool 每个 worker 各持有一份）
+_local_embedder_cache = {}
+
+
+def get_local_embedder(model_name="nomic-embed-text-v1"):
+    """加载（并缓存）本地 sbert 风格 embedding 模型，避免每个查询重复加载。"""
+    if model_name not in _local_embedder_cache:
+        _local_embedder_cache[model_name] = load_sbert(model_name)
+    return _local_embedder_cache[model_name]
+
+
+def embed_query(text, args):
+    """
+    将单个查询文本编码为 float32 向量（统一入口，自动分流本地/云端）。
+
+    - args.embedding_local 为 True 时：用本地 nomic（768 维），模型进程内只加载一次
+    - 否则：回退到云端 OpenAI 兼容 embedding API，行为与之前一致
+    """
+    if getattr(args, "embedding_local", False):
+        model, tokenizer, device = get_local_embedder(args.embedding_model_local)
+        emb = text_to_embedding_batch(model, tokenizer, device, [text])
+        # text_to_embedding_batch 现在返回逐条 list，emb[0] 是 list
+        return np.asarray(emb[0], dtype=np.float32)
+    return np.asarray(
+        openai_embedding(
+            text, args.embedding_api_key, args.embedding_api_base, args.embedding_model
+        ),
+        dtype=np.float32,
+    )
 
 
 load_model = {

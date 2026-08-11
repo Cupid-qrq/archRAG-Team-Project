@@ -1,4 +1,5 @@
 from inference import *
+from src.lm_emb import embed_query
 
 
 def ppr_serach(query_content,
@@ -12,20 +13,7 @@ def ppr_serach(query_content,
     args):
 
     query_paras["query_content"] = query_content
-    query_embedding = openai_embedding(
-        query_content,
-        args.embedding_api_key,
-        args.embedding_api_base,
-        args.embedding_model,
-    )
-
-    # 检查 query_embedding 是否为 list，若是则转换为 np.float32 的 numpy array
-    if isinstance(query_embedding, list):
-        query_embedding = np.array(query_embedding, dtype=np.float32)
-    elif not isinstance(query_embedding, np.ndarray):
-        raise ValueError(
-            "query_embedding is not in a valid format. It should be a list or numpy array."
-        )
+    query_embedding = embed_query(query_content, args)
 
     if query_embedding.ndim == 1:
         query_embedding = np.expand_dims(query_embedding, axis=0)

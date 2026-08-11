@@ -61,16 +61,24 @@ def make_hc_index(args):
         f"Finished reading graph in {time.time() - overall_start_time:.2f} seconds ()"
     )
 
-    community_df, token_usage = attr_cluster(
-        init_graph=graph,
-        final_entities=entities_df,
-        final_relationships=final_relationships,
-        args=args,
-        max_level=args.max_level,
-        min_clusters=args.min_clusters,
-        triple_text_mapping=triple_text_mapping,
-        chunk_weights=chunk_weights,
-    )
+    # 续跑钩子：若输出目录已存在 community_df_intermediate.csv（上一轮聚类+
+    # 社区报告已完成），则跳过最贵的聚类/报告阶段，直接加载已有社区数据。
+    resume_csv = os.path.join(args.output_dir, "community_df_intermediate.csv")
+    if os.path.exists(resume_csv):
+        print(f"Resume: loading existing {resume_csv}, skipping clustering/reports")
+        community_df = pd.read_csv(resume_csv)
+        token_usage = 0
+    else:
+        community_df, token_usage = attr_cluster(
+            init_graph=graph,
+            final_entities=entities_df,
+            final_relationships=final_relationships,
+            args=args,
+            max_level=args.max_level,
+            min_clusters=args.min_clusters,
+            triple_text_mapping=triple_text_mapping,
+            chunk_weights=chunk_weights,
+        )
     all_token += token_usage
     print(f"Token usage for clustering: {token_usage}")
     print("finish compute hierarchical clusters")

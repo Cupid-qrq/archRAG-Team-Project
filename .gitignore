@@ -58,6 +58,19 @@ faiss/python/swigfaiss_sve.swig
 .env
 corpus/cache/
 corpus/output/
+corpus/input/
 archrag_index/
 eval.log
 index_build.log
+_创新点/
+最新论文/
+
+# 实验产物 / 本地数据（不应入库）
+logs/
+indexes/
+analysis/
+hotpot_connected/
+hotpot_connected.zip
+*.docx
+*.parquet
+qa/*_hcarag*.csv

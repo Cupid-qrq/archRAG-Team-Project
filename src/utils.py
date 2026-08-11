@@ -574,8 +574,9 @@ def relation_embedding(
         return relation_df, None
 
     relation_df[e_colname] = relation_df[e_colname].fillna("N")
-    # 提取唯一描述
-    unique_descriptions = relation_df[e_colname].unique()
+    # 提取唯一描述。注意 .unique() 返回 numpy 数组，本地批量 tokenizer 只接受
+    # list[str]，必须 .tolist()，否则 "text input must be of type str" 报错。
+    unique_descriptions = relation_df[e_colname].unique().tolist()
 
     print(f"local is {args.embedding_local}")
     print(f"the number of unique {e_colname} is {len(unique_descriptions)}")

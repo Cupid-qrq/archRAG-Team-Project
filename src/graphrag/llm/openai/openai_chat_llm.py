@@ -50,8 +50,13 @@ class OpenAIChatLLM(BaseLLM[CompletionInput, CompletionOutput]):
             *history,
             {"role": "user", "content": input},
         ]
+        extra_args: dict = {}
+        if self.configuration.api_base and "opencode" in self.configuration.api_base:
+            # opencode 网关的推理模型会烧光 token 预算在思考(reasoning)上，
+            # 导致最终 content 为空。用 extra_body 关闭思考模式以稳定产出内容。
+            extra_args["extra_body"] = {"thinking": {"type": "disabled"}}
         completion = await self.client.chat.completions.create(
-            messages=messages, **args
+            messages=messages, **args, **extra_args
         )
         return completion.choices[0].message.content
 
